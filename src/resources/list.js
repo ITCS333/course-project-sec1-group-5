@@ -65,7 +65,7 @@ async function loadResources() {
       result.data.forEach(resource => {
         const articleElement = createResourceArticle(resource);
         resourceList.appendChild(articleElement);
-      )};
+      });
   }
   }catch(error){
   console.error("There Was A Error When loading resources:", error);

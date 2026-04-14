@@ -13,7 +13,7 @@
 
 // --- Element Selections ---
 // TODO: Select the section for the resource list ('#resource-list-section').
-const resourceList = docuement.getElementById('resource-list-section');
+const resourceList = document.getElementById('resource-list-section');
 
 
 // --- Functions ---
@@ -62,7 +62,7 @@ async function loadResources() {
     const response = await gets.json();
     if(response.success){
       resourceList.innerHTML = '';
-      result.data.forEach(resource => {
+     response.data.forEach(resource => {
         const articleElement = createResourceArticle(resource);
         resourceList.appendChild(articleElement);
       });

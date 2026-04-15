@@ -62,6 +62,8 @@ if (resourceTitle) resourceTitle.textContent = resource.title;
     if (resourceLink) {
         resourceLink.href = resource.link;
         resourceLink.textContent = "Access Resource Material";
+    }
+}
 
 /**
  * TODO: Implement the createCommentArticle function.

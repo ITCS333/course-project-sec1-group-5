@@ -82,11 +82,7 @@ const tr = document.createElement('tr');
  *    append the returned <tr> to the table body.
  */
 function renderTable() {
-  resourceTableBody.innerHTML = ''; 
-  resources.forEach(resource => {
-    const row = createResourceRow(resource);
-    resourceTableBody.appendChild(row);
-  });
+ 
 }
 /**
  * TODO: Implement the handleAddResource function.
@@ -111,35 +107,7 @@ function handleAddResource(event) {
   // ... your implementation here ...
 event.preventDefault();
   
-  const title = document.getElementById('resource-title').value;
-  const description = document.getElementById('resource-description').value;
-  const link = document.getElementById('resource-link').value;
-
-  const method = editId ? 'PUT' : 'POST';
-  const payload = editId ? { id: editId, title, description, link } : { title, description, link };
-
-  fetch('./api/index.php', {
-    method: method,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      if (editId) {
-        const index = resources.findIndex(r => r.id == editId);
-        resources[index] = { id: editId, title, description, link };
-        editId = null;
-        submitBtn.textContent = "Add Resource";
-      } else {
-        resources.push({ id: data.id, title, description, link });
-      }
-      renderTable();
-      resourceForm.reset();
-    }
-  })
-  .catch(error => console.error('Error saving:', error));
-}
+ 
 
 /**
  * TODO: Implement the handleTableClick function.
@@ -173,37 +141,8 @@ event.preventDefault();
  *    restoring the submit button text to "Add Resource".
  */
 function handleTableClick(event) {
-const target = event.target;
-  const id = target.dataset.id;
 
-  if (!id) return; 
-
-  if (target.classList.contains('delete-btn')) {
-    if (confirm("Are you sure you want to delete this resource?")) {
-      fetch(`./api/index.php?id=${id}`, { method: 'DELETE' })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          resources = resources.filter(r => r.id != id);
-          renderTable();
-        }
-      });
-    }
-  }
-
-    if (target.classList.contains('edit-btn')) {
-    const resource = resources.find(r => r.id == id);
-    if (resource) {
-      document.getElementById('resource-title').value = resource.title;
-      document.getElementById('resource-description').value = resource.description;
-      document.getElementById('resource-link').value = resource.link;
       
-      editId = id; 
-      submitBtn.textContent = "Update Resource";
-      document.getElementById('resource-title').focus();
-    }
-  }
-}
 /**
  * TODO: Implement the loadAndInitialize function.
  * This function must be 'async'.
@@ -220,22 +159,6 @@ const target = event.target;
  */
 async function loadAndInitialize() {
   // ... your implementation here ...
-  try{
-const response = await fetch('./api/index.php');
-    const result = await response.json();
-
-    if (result.success) {
-      resources = result.data;
-      renderTable();
-    }
-
-    // Attach Event Listeners
-    resourceForm.addEventListener('submit', handleAddResource);
-    resourceTableBody.addEventListener('click', handleTableClick);
-
-  } catch (error) {
-    console.error("Failed to initialize:", error);
-  }
-}
+ 
 // --- Initial Page Load ---
 loadAndInitialize();

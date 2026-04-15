@@ -113,29 +113,23 @@ function handleAddResource(event) {
   // ... your implementation here ...
 event.preventDefault();
 
-  const commentTextarea = document.getElementById('comment-text');
-  const text = commentTextarea.value;
-  
-  const params = new URLSearchParams(window.location.search);
-  const resourceId = params.get('id');
+  const title = document.getElementById('resource-title').value;
+  const description = document.getElementById('resource-description').value;
+  const link = document.getElementById('resource-link').value;
 
-  fetch('./api/index.php?action=comment', {
+  fetch('./api/index.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ 
-      resource_id: resourceId, 
-      text: text 
-    })
+    body: JSON.stringify({ title, description, link })
   })
   .then(response => response.json())
   .then(data => {
     if (data.success) {
-      commentTextarea.value = ''; 
-      
-   
+      resources.push({ id: data.id, title, description, link });
+      renderTable();
+      resourceForm.reset();
     }
-  })
-  .catch(error => console.error('Error adding comment:', error));
+  });
 }
 
 /**

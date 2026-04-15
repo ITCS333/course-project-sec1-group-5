@@ -38,40 +38,36 @@ const resourceTable = document.getElementById('resources-tbody');
 function createResourceRow(resource) {
   // ... your implementation here ...
 const tr = document.createElement('tr');
-  
-  const titleTd = document.createElement('td');
-  titleTd.textContent = resource.title;
-  tr.appendChild(titleTd);
-  
-  const descTd = document.createElement('td');
-  descTd.textContent = resource.description;
-  tr.appendChild(descTd);
 
-  const linkTd = document.createElement('td');
-  const linkElement = document.createElement('a');
-  linkElement.href = resource.link;
-  linkElement.textContent = resource.link; 
-  linkElement.target = "_blank"; 
-  linkTd.appendChild(linkElement); 
-  tr.appendChild(linkTd);
+    const tdTitle = document.createElement('td');
+    tdTitle.textContent = resource.title;
+    tr.appendChild(tdTitle);
 
-  const actionTd = document.createElement('td');
+    const tdDesc = document.createElement('td');
+    tdDesc.textContent = resource.description;
+    tr.appendChild(tdDesc);
 
-  const editBtn = document.createElement('button');
-  editBtn.textContent = "Edit";
-  editBtn.className = "edit-btn";
-  editBtn.dataset.id = resource.id;
+    const tdLink = document.createElement('td');
+    tdLink.textContent = resource.link;
+    tr.appendChild(tdLink);
 
-  const deleteBtn = document.createElement('button');
-  deleteBtn.textContent = "Delete";
-  deleteBtn.className = "delete-btn";
-  deleteBtn.dataset.id = resource.id;
+    const tdActions = document.createElement('td');
 
-  actionTd.appendChild(editBtn);
-  actionTd.appendChild(deleteBtn);
-  tr.appendChild(actionTd);
+    const editBtn = document.createElement('button');
+    editBtn.textContent = 'Edit';
+    editBtn.className = 'edit-btn';
+    editBtn.setAttribute('data-id', resource.id); // Explicitly set data-id
 
-  return tr;
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.className = 'delete-btn';
+    deleteBtn.setAttribute('data-id', resource.id); // Explicitly set data-id
+
+    tdActions.appendChild(editBtn);
+    tdActions.appendChild(deleteBtn);
+    tr.appendChild(tdActions);
+
+    return tr;
 }
 /**
  * TODO: Implement the renderTable function.
@@ -82,12 +78,14 @@ const tr = document.createElement('tr');
  *    append the returned <tr> to the table body.
  */
 function renderTable() {
-  resourceTableBody.innerHTML = '';
-    resources.forEach(res => {
-        resourceTableBody.appendChild(createResourceRow(res));
+ // JS-22: Clear before rendering
+    resourceTableBody.innerHTML = '';
+    
+    // JS-23: Render loop
+    resources.forEach(resource => {
+        const row = createResourceRow(resource);
+        resourceTableBody.appendChild(row);
     });
-}
- 
 }
 /**
  * TODO: Implement the handleAddResource function.

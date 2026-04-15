@@ -57,12 +57,9 @@ const params = new URLSearchParams(window.location.search);
  */
 function renderResourceDetails(resource) {
   // ... your implementation here ...
-if (resourceTitle) resourceTitle.textContent = resource.title;
-    if (resourceDescription) resourceDescription.textContent = resource.description;
-    if (resourceLink) {
-        resourceLink.href = resource.link;
-        resourceLink.textContent = "Access Resource Material";
-    }
+resourceTitle.textContent = resource.title;
+    resourceDescription.textContent = resource.description;
+    resourceLink.href = resource.link;
 }
 
 /**
@@ -76,19 +73,15 @@ if (resourceTitle) resourceTitle.textContent = resource.title;
 function createCommentArticle(comment) {
   // ... your implementation here ...
 const article = document.createElement('article');
-    
     const p = document.createElement('p');
     p.textContent = comment.text;
-    
     const footer = document.createElement('footer');
-    footer.textContent = `Posted by : ${comment.author}`;
+    footer.textContent = `Posted by: ${comment.author}`;
     
     article.appendChild(p);
     article.appendChild(footer);
-    
     return article;
 }
-
 /**
  * TODO: Implement the renderComments function.
  * It should:
@@ -99,13 +92,9 @@ const article = document.createElement('article');
  */
 function renderComments() {
   // ... your implementation here ...
- if (!commentList) return;
-    
-    commentList.innerHTML = '';
-    
+commentList.innerHTML = '';
     currentComments.forEach(comment => {
-        const commentArticle = createCommentArticle(comment);
-        commentList.appendChild(commentArticle);
+        commentList.appendChild(createCommentArticle(comment));
     });
 }
 /**
@@ -132,26 +121,29 @@ function renderComments() {
  */
 async function handleAddComment(event) {
   // ... your implementation here ...
- const commentText = newCommentInput.value.trim();
+ event.preventDefault();
+    
+    const commentText = newCommentInput.value.trim();
+    // JS-14: Do nothing if empty
     if (!commentText) return;
 
     try {
-        // Now 'await' is valid because the function is 'async'
+        // JS-15: Send POST request
         const response = await fetch('./api/index.php?action=comment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 resource_id: currentResourceId,
-                author: 'Student', 
+                author: 'Student',
                 text: commentText
             })
         });
 
         const result = await response.json();
-
         if (result.success) {
             currentComments.push(result.data);
             renderComments();
+            // JS-16: Clear textarea after posting
             newCommentInput.value = '';
         }
     } catch (error) {
@@ -184,31 +176,26 @@ async function handleAddComment(event) {
 async function initializePage() {
   // ... your implementation here ...
 currentResourceId = getResourceIdFromURL();
-
     if (!currentResourceId) {
-        if (resourceTitle) resourceTitle.textContent = "Resource not found.";
+        resourceTitle.textContent = "Resource not found.";
         return;
     }
 
     try {
+        // JS-17 & JS-18: Fetch details and comments
         const [resourceRes, commentsRes] = await Promise.all([
             fetch(`./api/index.php?id=${currentResourceId}`).then(res => res.json()),
             fetch(`./api/index.php?resource_id=${currentResourceId}&action=comments`).then(res => res.json())
         ]);
 
-        if (resourceRes.success && resourceRes.data) {
+        if (resourceRes.success) {
             renderResourceDetails(resourceRes.data);
             currentComments = commentsRes.data || [];
             renderComments();
-
-            if (commentForm) {
-                commentForm.addEventListener('submit', handleAddComment);
-            }
-        } else {
-            if (resourceTitle) resourceTitle.textContent = "Resource not found.";
+            commentForm.addEventListener('submit', handleAddComment);
         }
     } catch (error) {
-        if (resourceTitle) resourceTitle.textContent = "Resource not found.";
+        console.error("Error loading page:", error);
     }
 }
 

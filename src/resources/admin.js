@@ -112,43 +112,30 @@ function renderTable() {
 function handleAddResource(event) {
   // ... your implementation here ...
 event.preventDefault();
+
+  const commentTextarea = document.getElementById('comment-text');
+  const text = commentTextarea.value;
   
-  const title = document.getElementById('resource-title').value;
-  const description = document.getElementById('resource-description').value;
-  const link = document.getElementById('resource-link').value;
+  const params = new URLSearchParams(window.location.search);
+  const resourceId = params.get('id');
 
-  let requestMethod;
-  let resourceData;
-
-  if (editId) {
-    requestMethod = 'PUT';
-    resourceData = { id: editId, title: title, description: description, link: link };
-  } else {
-    requestMethod = 'POST';
-    resourceData = { title: title, description: description, link: link };
-  }
-
-  fetch('./api/index.php', {
-    method: requestMethod,
+  fetch('./api/index.php?action=comment', {
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(resourceData)
+    body: JSON.stringify({ 
+      resource_id: resourceId, 
+      text: text 
+    })
   })
   .then(response => response.json())
   .then(data => {
     if (data.success) {
-      if (editId) {
-        const index = resources.findIndex(r => r.id == editId);
-        resources[index] = { id: editId, title, description, link };
-        editId = null;
-        document.getElementById('add-resource').textContent = "Add Resource";
-      } else {
-        resources.push({ id: data.id, title, description, link });
-      }
-      renderTable();
-      resourceForm.reset();
+      commentTextarea.value = ''; 
+      
+   
     }
   })
-  .catch(error => console.log('Error saving:', error));
+  .catch(error => console.error('Error adding comment:', error));
 }
 
 /**

@@ -182,7 +182,7 @@ function handleAddComment(event) {
  */
 async function initializePage() {
   // ... your implementation here ...
- currentResourceId = getResourceIdFromURL();
+currentResourceId = getResourceIdFromURL();
 
     if (!currentResourceId) {
         if (resourceTitle) resourceTitle.textContent = "Resource not found.";
@@ -197,7 +197,6 @@ async function initializePage() {
 
         if (resourceRes.success && resourceRes.data) {
             renderResourceDetails(resourceRes.data);
-            
             currentComments = commentsRes.data || [];
             renderComments();
 
@@ -208,11 +207,9 @@ async function initializePage() {
             if (resourceTitle) resourceTitle.textContent = "Resource not found.";
         }
     } catch (error) {
-        console.error("Initialization error:", error);
-        if (resourceTitle) resourceTitle.textContent = "Error loading resource.";
+        if (resourceTitle) resourceTitle.textContent = "Resource not found.";
     }
 }
-
 
 // --- Initial Page Load ---
 initializePage();

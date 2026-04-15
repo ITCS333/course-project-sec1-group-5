@@ -37,40 +37,49 @@ const resourceTable = document.getElementById('resources-tbody');
  */
 function createResourceRow(resource) {
   // ... your implementation here ...
-const tr = document.createElement('tr');
+const target = event.target;
   
-  const titleTd = document.createElement('td');
-  titleTd.textContent = resource.title;
-  tr.appendChild(titleTd);
-  
-  const descTd = document.createElement('td');
-  descTd.textContent = resource.description;
-  tr.appendChild(descTd);
+  // Get the data-id from the button (set in createResourceRow)
+  const id = target.dataset.id;
 
-  const linkTd = document.createElement('td');
-  const linkElement = document.createElement('a');
-  linkElement.href = resource.link;
-  linkElement.textContent = resource.link; // This fixes JS-20
-  linkElement.target = "_blank"; 
-  linkTd.appendChild(linkElement); 
-  tr.appendChild(linkTd);
+  // 1. Logic for Delete Button
+  if (target.classList.contains('delete-btn')) {
+    // Confirm with the user (optional, but good practice)
+    if (confirm('Are you sure you want to delete this resource?')) {
+      fetch(`./api/index.php?id=${id}`, {
+        method: 'DELETE'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Remove from the global array and refresh the table
+          resources = resources.filter(resource => resource.id != id);
+          renderTable();
+        }
+      })
+      .catch(error => console.error('Error deleting:', error));
+    }
+  }
 
-  const actionTd = document.createElement('td');
-  const editBtn = document.createElement('button');
-  editBtn.textContent = "Edit";
-  editBtn.className = "edit-btn";
-  editBtn.dataset.id = resource.id;
-
-  const deleteBtn = document.createElement('button');
-  deleteBtn.textContent = "Delete";
-  deleteBtn.className = "delete-btn";
-  deleteBtn.dataset.id = resource.id;
-
-  actionTd.appendChild(editBtn);
-  actionTd.appendChild(deleteBtn);
-  tr.appendChild(actionTd);
-
-  return tr;
+  // 2. Logic for Edit Button
+  if (target.classList.contains('edit-btn')) {
+    // Find the specific resource data in your global array
+    const resource = resources.find(r => r.id == id);
+    
+    if (resource) {
+      // Fill the form fields with existing data
+      document.getElementById('resource-title').value = resource.title;
+      document.getElementById('resource-description').value = resource.description;
+      document.getElementById('resource-link').value = resource.link;
+      
+      // Switch the form to "Edit Mode"
+      editId = id; 
+      document.getElementById('add-resource').textContent = "Update Resource";
+      
+      // Scroll to form (optional)
+      document.getElementById('resource-form').scrollIntoView();
+    }
+  }
 }
 
 /**
@@ -112,22 +121,31 @@ function renderTable() {
 function handleAddResource(event) {
   // ... your implementation here ...
 event.preventDefault();
-
   const title = document.getElementById('resource-title').value;
   const description = document.getElementById('resource-description').value;
   const link = document.getElementById('resource-link').value;
 
+  const method = editId ? 'PUT' : 'POST';
+  const payload = editId ? { id: editId, title, description, link } : { title, description, link };
+
   fetch('./api/index.php', {
-    method: 'POST',
+    method: method,
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, description, link })
+    body: JSON.stringify(payload)
   })
   .then(response => response.json())
   .then(data => {
     if (data.success) {
-      resources.push({ id: data.id, title, description, link });
+      if (editId) {
+        const index = resources.findIndex(r => r.id == editId);
+        resources[index] = { id: editId, title, description, link };
+        editId = null;
+        document.getElementById('add-resource').textContent = "Add Resource";
+      } else {
+        resources.push({ id: data.id, title, description, link });
+      }
       renderTable();
-      resourceForm.reset();
+      document.getElementById('resource-form').reset();
     }
   });
 }
@@ -164,11 +182,7 @@ event.preventDefault();
  *    restoring the submit button text to "Add Resource".
  */
 function handleTableClick(event) {
-const target = event.target;
-  const id = target.dataset.id;
-
-  // 1. Logic for Delete Button
-  if (target.classList.contains('delete-btn')) {
+if (target.classList.contains('delete-btn')) {
     fetch(`./api/index.php?id=${id}`, { method: 'DELETE' })
     .then(response => response.json())
     .then(data => {
@@ -179,7 +193,6 @@ const target = event.target;
     });
   }
 
-  // 2. Logic for Edit Button
   if (target.classList.contains('edit-btn')) {
     const resource = resources.find(r => r.id == id);
     if (resource) {
@@ -192,7 +205,6 @@ const target = event.target;
     }
   }
 }
-
 /**
  * TODO: Implement the loadAndInitialize function.
  * This function must be 'async'.
@@ -210,39 +222,30 @@ const target = event.target;
 async function loadAndInitialize() {
   // ... your implementation here ...
   try {
-    // 1. Use fetch() to GET all resources from the API
-    // The default method for fetch() is GET
+  
     const response = await fetch('./api/index.php');
     
-    // Convert the response to JSON
     const result = await response.json();
 
-    // 2. Store the resources array in the global variable
-    // The API returns { success: true, data: [...] }
     if (result.success) {
       resources = result.data;
 
-      // 3. Call renderTable() to populate the table for the first time
       renderTable();
     }
 
-    // 4. Add the 'submit' event listener to the resource form
-    // Using getElementById as we discussed earlier
+  
     const resourceForm = document.getElementById('resource-form');
     resourceForm.addEventListener('submit', handleAddResource);
 
-    // 5. Add the 'click' event listener to the table body
-    // This enables the "Event Delegation" for Edit/Delete buttons
+
     const tbody = document.getElementById('resources-tbody');
     tbody.addEventListener('click', handleTableClick);
 
   } catch (error) {
-    // Basic error handling to help you debug in the browser console
     console.error("Failed to initialize resources:", error);
   }
 }
 
 
 // --- Initial Page Load ---
-// Call the main async function to start the application.
 loadAndInitialize();

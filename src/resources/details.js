@@ -130,7 +130,7 @@ function renderComments() {
  * 6. Call `renderComments()` to refresh the comment list.
  * 7. Clear the textarea.
  */
-function handleAddComment(event) {
+async function handleAddComment(event) {
   // ... your implementation here ...
  const commentText = newCommentInput.value.trim();
     if (!commentText) return;

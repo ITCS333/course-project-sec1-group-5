@@ -81,11 +81,11 @@ const tr = document.createElement('tr');
  * 3. For each resource, call `createResourceRow()` and
  *    append the returned <tr> to the table body.
  */
-const tbody = document.getElementById('resources-tbody');
-  tbody.innerHTML = '';
-  resources.forEach(function(resource) {
+function renderTable() {
+  resourceTableBody.innerHTML = ''; 
+  resources.forEach(resource => {
     const row = createResourceRow(resource);
-    tbody.appendChild(row);
+    resourceTableBody.appendChild(row);
   });
 }
 /**
@@ -110,7 +110,6 @@ const tbody = document.getElementById('resources-tbody');
 function handleAddResource(event) {
   // ... your implementation here ...
 event.preventDefault();
-event.preventDefault();
   
   const title = document.getElementById('resource-title').value;
   const description = document.getElementById('resource-description').value;
@@ -131,7 +130,7 @@ event.preventDefault();
         const index = resources.findIndex(r => r.id == editId);
         resources[index] = { id: editId, title, description, link };
         editId = null;
-        document.getElementById('add-resource').textContent = "Add Resource";
+        submitBtn.textContent = "Add Resource";
       } else {
         resources.push({ id: data.id, title, description, link });
       }
@@ -180,17 +179,19 @@ const target = event.target;
   if (!id) return; 
 
   if (target.classList.contains('delete-btn')) {
-    fetch(`./api/index.php?id=${id}`, { method: 'DELETE' })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        resources = resources.filter(r => r.id != id);
-        renderTable();
-      }
-    });
+    if (confirm("Are you sure you want to delete this resource?")) {
+      fetch(`./api/index.php?id=${id}`, { method: 'DELETE' })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          resources = resources.filter(r => r.id != id);
+          renderTable();
+        }
+      });
+    }
   }
 
-  if (target.classList.contains('edit-btn')) {
+    if (target.classList.contains('edit-btn')) {
     const resource = resources.find(r => r.id == id);
     if (resource) {
       document.getElementById('resource-title').value = resource.title;
@@ -198,7 +199,8 @@ const target = event.target;
       document.getElementById('resource-link').value = resource.link;
       
       editId = id; 
-      document.getElementById('add-resource').textContent = "Update Resource";
+      submitBtn.textContent = "Update Resource";
+      document.getElementById('resource-title').focus();
     }
   }
 }
@@ -218,8 +220,8 @@ const target = event.target;
  */
 async function loadAndInitialize() {
   // ... your implementation here ...
- try {
-    const response = await fetch('./api/index.php');
+  try{
+const response = await fetch('./api/index.php');
     const result = await response.json();
 
     if (result.success) {
@@ -227,14 +229,13 @@ async function loadAndInitialize() {
       renderTable();
     }
 
+    // Attach Event Listeners
     resourceForm.addEventListener('submit', handleAddResource);
-    const tbody = document.getElementById('resources-tbody');
-    tbody.addEventListener('click', handleTableClick);
+    resourceTableBody.addEventListener('click', handleTableClick);
 
   } catch (error) {
     console.error("Failed to initialize:", error);
   }
 }
-
 // --- Initial Page Load ---
 loadAndInitialize();

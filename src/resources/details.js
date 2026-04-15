@@ -130,12 +130,11 @@ function renderComments() {
  */
 function handleAddComment(event) {
   // ... your implementation here ...
- event.preventDefault();
-    
-    const commentText = newCommentInput.value.trim();
+ const commentText = newCommentInput.value.trim();
     if (!commentText) return;
 
     try {
+        // Now 'await' is valid because the function is 'async'
         const response = await fetch('./api/index.php?action=comment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

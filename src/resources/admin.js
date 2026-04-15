@@ -37,51 +37,42 @@ const resourceTable = document.getElementById('resources-tbody');
  */
 function createResourceRow(resource) {
   // ... your implementation here ...
-const target = event.target;
+const tr = document.createElement('tr');
   
-  // Get the data-id from the button (set in createResourceRow)
-  const id = target.dataset.id;
+  const titleTd = document.createElement('td');
+  titleTd.textContent = resource.title;
+  tr.appendChild(titleTd);
+  
+  const descTd = document.createElement('td');
+  descTd.textContent = resource.description;
+  tr.appendChild(descTd);
 
-  // 1. Logic for Delete Button
-  if (target.classList.contains('delete-btn')) {
-    // Confirm with the user (optional, but good practice)
-    if (confirm('Are you sure you want to delete this resource?')) {
-      fetch(`./api/index.php?id=${id}`, {
-        method: 'DELETE'
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          // Remove from the global array and refresh the table
-          resources = resources.filter(resource => resource.id != id);
-          renderTable();
-        }
-      })
-      .catch(error => console.error('Error deleting:', error));
-    }
-  }
+  const linkTd = document.createElement('td');
+  const linkElement = document.createElement('a');
+  linkElement.href = resource.link;
+  linkElement.textContent = resource.link; 
+  linkElement.target = "_blank"; 
+  linkTd.appendChild(linkElement); 
+  tr.appendChild(linkTd);
 
-  // 2. Logic for Edit Button
-  if (target.classList.contains('edit-btn')) {
-    // Find the specific resource data in your global array
-    const resource = resources.find(r => r.id == id);
-    
-    if (resource) {
-      // Fill the form fields with existing data
-      document.getElementById('resource-title').value = resource.title;
-      document.getElementById('resource-description').value = resource.description;
-      document.getElementById('resource-link').value = resource.link;
-      
-      // Switch the form to "Edit Mode"
-      editId = id; 
-      document.getElementById('add-resource').textContent = "Update Resource";
-      
-      // Scroll to form (optional)
-      document.getElementById('resource-form').scrollIntoView();
-    }
-  }
+  const actionTd = document.createElement('td');
+
+  const editBtn = document.createElement('button');
+  editBtn.textContent = "Edit";
+  editBtn.className = "edit-btn";
+  editBtn.dataset.id = resource.id;
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.textContent = "Delete";
+  deleteBtn.className = "delete-btn";
+  deleteBtn.dataset.id = resource.id;
+
+  actionTd.appendChild(editBtn);
+  actionTd.appendChild(deleteBtn);
+  tr.appendChild(actionTd);
+
+  return tr;
 }
-
 /**
  * TODO: Implement the renderTable function.
  * It should:
@@ -90,13 +81,11 @@ const target = event.target;
  * 3. For each resource, call `createResourceRow()` and
  *    append the returned <tr> to the table body.
  */
-function renderTable() {
-  const tbody = document.getElementById('resources-tbody'); 
-  tbody.innerHTML = ''; 
-  
+const tbody = document.getElementById('resources-tbody');
+  tbody.innerHTML = '';
   resources.forEach(function(resource) {
     const row = createResourceRow(resource);
-    tbody.appendChild(row); 
+    tbody.appendChild(row);
   });
 }
 /**
@@ -121,6 +110,8 @@ function renderTable() {
 function handleAddResource(event) {
   // ... your implementation here ...
 event.preventDefault();
+event.preventDefault();
+  
   const title = document.getElementById('resource-title').value;
   const description = document.getElementById('resource-description').value;
   const link = document.getElementById('resource-link').value;
@@ -145,9 +136,10 @@ event.preventDefault();
         resources.push({ id: data.id, title, description, link });
       }
       renderTable();
-      document.getElementById('resource-form').reset();
+      resourceForm.reset();
     }
-  });
+  })
+  .catch(error => console.error('Error saving:', error));
 }
 
 /**
@@ -182,7 +174,12 @@ event.preventDefault();
  *    restoring the submit button text to "Add Resource".
  */
 function handleTableClick(event) {
-if (target.classList.contains('delete-btn')) {
+const target = event.target;
+  const id = target.dataset.id;
+
+  if (!id) return; 
+
+  if (target.classList.contains('delete-btn')) {
     fetch(`./api/index.php?id=${id}`, { method: 'DELETE' })
     .then(response => response.json())
     .then(data => {
@@ -221,31 +218,23 @@ if (target.classList.contains('delete-btn')) {
  */
 async function loadAndInitialize() {
   // ... your implementation here ...
-  try {
-  
+ try {
     const response = await fetch('./api/index.php');
-    
     const result = await response.json();
 
     if (result.success) {
       resources = result.data;
-
       renderTable();
     }
 
-  
-    const resourceForm = document.getElementById('resource-form');
     resourceForm.addEventListener('submit', handleAddResource);
-
-
     const tbody = document.getElementById('resources-tbody');
     tbody.addEventListener('click', handleTableClick);
 
   } catch (error) {
-    console.error("Failed to initialize resources:", error);
+    console.error("Failed to initialize:", error);
   }
 }
-
 
 // --- Initial Page Load ---
 loadAndInitialize();

@@ -37,27 +37,25 @@ const resourceTable = document.getElementById('resources-tbody');
  */
 function createResourceRow(resource) {
   // ... your implementation here ...
-  const tr = document.createElement('tr');
+const tr = document.createElement('tr');
   
-  const titleId = document.createElement('td');
-  titleId.textContent = resource.title;
-  tr.appendChild(titleId);
+  const titleTd = document.createElement('td');
+  titleTd.textContent = resource.title;
+  tr.appendChild(titleTd);
   
-  const descId = document.createElement('td');
-  descId.textContent = resource.description;
-  tr.appendChild(descId);
+  const descTd = document.createElement('td');
+  descTd.textContent = resource.description;
+  tr.appendChild(descTd);
 
-  const linkId = document.createElement('td');
-
+  const linkTd = document.createElement('td');
   const linkElement = document.createElement('a');
   linkElement.href = resource.link;
-  linkElement.textContent = "View";
+  linkElement.textContent = resource.link; // This fixes JS-20
   linkElement.target = "_blank"; 
-  linkId.appendChild(linkElement); 
-  tr.appendChild(linkId);
+  linkTd.appendChild(linkElement); 
+  tr.appendChild(linkTd);
 
-  const actionId = document.createElement('td');
-
+  const actionTd = document.createElement('td');
   const editBtn = document.createElement('button');
   editBtn.textContent = "Edit";
   editBtn.className = "edit-btn";
@@ -68,14 +66,11 @@ function createResourceRow(resource) {
   deleteBtn.className = "delete-btn";
   deleteBtn.dataset.id = resource.id;
 
-  actionId.appendChild(editBtn);
-  actionId.appendChild(deleteBtn);
-
-  tr.appendChild(actionId);
+  actionTd.appendChild(editBtn);
+  actionTd.appendChild(deleteBtn);
+  tr.appendChild(actionTd);
 
   return tr;
-
-  
 }
 
 /**
@@ -87,15 +82,14 @@ function createResourceRow(resource) {
  *    append the returned <tr> to the table body.
  */
 function renderTable() {
-  // ... your implementation here ...
-  const tbody = document.getElementById('resources-tbody');
-  tbody.innerHTML = '';
+  const tbody = document.getElementById('resources-tbody'); 
+  tbody.innerHTML = ''; 
+  
   resources.forEach(function(resource) {
     const row = createResourceRow(resource);
-    tbody.appendChild(row);
+    tbody.appendChild(row); 
   });
 }
-
 /**
  * TODO: Implement the handleAddResource function.
  * This is the event handler for the form's 'submit' event.

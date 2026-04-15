@@ -82,6 +82,11 @@ const tr = document.createElement('tr');
  *    append the returned <tr> to the table body.
  */
 function renderTable() {
+  resourceTableBody.innerHTML = '';
+    resources.forEach(res => {
+        resourceTableBody.appendChild(createResourceRow(res));
+    });
+}
  
 }
 /**
@@ -106,7 +111,41 @@ function renderTable() {
 function handleAddResource(event) {
   // ... your implementation here ...
 event.preventDefault();
-  
+    
+    const title = document.getElementById('resource-title').value;
+    const description = document.getElementById('resource-description').value;
+    const link = document.getElementById('resource-link').value;
+    const submitBtn = document.getElementById('add-resource');
+
+    const method = editId ? 'PUT' : 'POST';
+    const bodyData = editId ? { id: editId, title, description, link } : { title, description, link };
+
+    try {
+        const response = await fetch('./api/index.php', {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bodyData)
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            if (editId) {
+                // Update local array
+                const index = resources.findIndex(r => r.id == editId);
+                resources[index] = { ...resources[index], title, description, link };
+                editId = null;
+                submitBtn.textContent = "Add Resource";
+            } else {
+                // Add new to array
+                resources.push({ id: result.id, title, description, link });
+            }
+            renderTable();
+            resourceForm.reset();
+        }
+    } catch (error) {
+        console.error("Error saving resource:", error);
+    }
+}  
  
 
 /**
@@ -140,7 +179,30 @@ event.preventDefault();
  * 7. Call `renderTable()` and reset the form back to "Add" mode,
  *    restoring the submit button text to "Add Resource".
  */
-function handleTableClick(event) {
+async function handleTableClick(event) {
+  const id = event.target.dataset.id;
+    if (!id) return;
+
+    if (event.target.classList.contains('delete-btn')) {
+        if (!confirm("Are you sure?")) return;
+        const response = await fetch(`./api/index.php?id=${id}`, { method: 'DELETE' });
+        const result = await response.json();
+        if (result.success) {
+            resources = resources.filter(r => r.id != id);
+            renderTable();
+        }
+    }
+
+    if (event.target.classList.contains('edit-btn')) {
+        const resource = resources.find(r => r.id == id);
+        document.getElementById('resource-title').value = resource.title;
+        document.getElementById('resource-description').value = resource.description;
+        document.getElementById('resource-link').value = resource.link;
+        
+        editId = id;
+        document.getElementById('add-resource').textContent = "Update Resource";
+    }
+}
 
       
 /**
@@ -159,6 +221,18 @@ function handleTableClick(event) {
  */
 async function loadAndInitialize() {
   // ... your implementation here ...
+  try {
+        const response = await fetch('./api/index.php');
+        const result = await response.json();
+        resources = result.data || [];
+        renderTable();
+
+        resourceForm.addEventListener('submit', handleAddResource);
+        resourceTableBody.addEventListener('click', handleTableClick);
+    } catch (error) {
+        console.error("Failed to load:", error);
+    }
+}
  
 // --- Initial Page Load ---
 loadAndInitialize();

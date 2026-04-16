@@ -124,11 +124,9 @@ async function handleAddComment(event) {
  event.preventDefault();
     
     const commentText = newCommentInput.value.trim();
-    // JS-14: Do nothing if empty
     if (!commentText) return;
 
     try {
-        // JS-15: Send POST request
         const response = await fetch('./api/index.php?action=comment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -143,7 +141,6 @@ async function handleAddComment(event) {
         if (result.success) {
             currentComments.push(result.data);
             renderComments();
-            // JS-16: Clear textarea after posting
             newCommentInput.value = '';
         }
     } catch (error) {
@@ -182,7 +179,6 @@ currentResourceId = getResourceIdFromURL();
     }
 
     try {
-        // JS-17 & JS-18: Fetch details and comments
         const [resourceRes, commentsRes] = await Promise.all([
             fetch(`./api/index.php?id=${currentResourceId}`).then(res => res.json()),
             fetch(`./api/index.php?resource_id=${currentResourceId}&action=comments`).then(res => res.json())

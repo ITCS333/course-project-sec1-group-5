@@ -78,20 +78,16 @@ const tr = document.createElement('tr');
  *    append the returned <tr> to the table body.
  */
 function renderTable() {
-const currentTableBody = document.getElementById('resources-tbody');
-    
-    if (!currentTableBody) {
+    if (!resourceTable) {
         console.error("Could not find #resources-tbody");
         return;
     }
 
-    // 2. JS-22: Clear the existing rows
-    currentTableBody.innerHTML = '';
-    
-    // 3. JS-23: Loop through the global resources array
+    resourceTable.innerHTML = '';
+
     resources.forEach(resource => {
         const row = createResourceRow(resource);
-        currentTableBody.appendChild(row);
+        resourceTable.appendChild(row);
     });
 }
 /**

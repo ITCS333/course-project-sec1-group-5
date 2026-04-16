@@ -56,7 +56,6 @@ const tr = document.createElement('tr');
     const editBtn = document.createElement('button');
     editBtn.textContent = 'Edit';
     editBtn.className = 'edit-btn';
-    // Test JS-21 requires this attribute
     editBtn.setAttribute('data-id', resource.id); 
 
     const deleteBtn = document.createElement('button');
@@ -79,10 +78,9 @@ const tr = document.createElement('tr');
  *    append the returned <tr> to the table body.
  */
 function renderTable() {
- // JS-22: Clear before rendering
+ const tbody = document.getElementById('resources-tbody');
  resourceTable.innerHTML = '';
     
-    // JS-23: Render loop
     resources.forEach(resource => {
         const row = createResourceRow(resource);
         resourceTable.appendChild(row);
@@ -123,7 +121,7 @@ event.preventDefault(); // JS-24
         const response = await fetch('./api/index.php', {
             method: method,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(bodyData) // JS-25
+            body: JSON.stringify(bodyData) 
         });
         const result = await response.json();
 
@@ -134,7 +132,6 @@ event.preventDefault(); // JS-24
                 editId = null;
                 submitBtn.textContent = "Add Resource";
             } else {
-                // JS-25: Add the new ID from API to the local store
                 resources.push({ id: result.id, title, description, link });
             }
             renderTable();
@@ -181,7 +178,6 @@ const id = event.target.dataset.id;
     if (!id) return;
 
     if (event.target.classList.contains('delete-btn')) {
-        // JS-26: DELETE request
         const response = await fetch(`./api/index.php?id=${id}`, { method: 'DELETE' });
         const result = await response.json();
         if (result.success) {
@@ -191,7 +187,6 @@ const id = event.target.dataset.id;
     }
 
     if (event.target.classList.contains('edit-btn')) {
-        // JS-27: Populate form
         const resource = resources.find(r => r.id == id);
         document.getElementById('resource-title').value = resource.title;
         document.getElementById('resource-description').value = resource.description;
@@ -219,15 +214,12 @@ const id = event.target.dataset.id;
 async function loadAndInitialize() {
   // ... your implementation here ...
 try {
-        // JS-28: Fetch initial data
         const response = await fetch('./api/index.php');
         const result = await response.json();
         resources = result.data || [];
         
-        // JS-29: Initial render
         renderTable();
 
-        // JS-30: Attach listeners
         resourceForm.addEventListener('submit', handleAddResource);
         resourceTable.addEventListener('click', handleTableClick);
     } catch (error) {

@@ -56,18 +56,30 @@ const tr = document.createElement('tr');
     const editBtn = document.createElement('button');
     editBtn.textContent = 'Edit';
     editBtn.className = 'edit-btn';
-    editBtn.setAttribute('data-id', resource.id); // Explicitly set data-id
+    // Test JS-21 requires this attribute
+    editBtn.setAttribute('data-id', resource.id); 
 
     const deleteBtn = document.createElement('button');
     deleteBtn.textContent = 'Delete';
     deleteBtn.className = 'delete-btn';
-    deleteBtn.setAttribute('data-id', resource.id); // Explicitly set data-id
+    deleteBtn.setAttribute('data-id', resource.id);
 
     tdActions.appendChild(editBtn);
     tdActions.appendChild(deleteBtn);
     tr.appendChild(tdActions);
 
     return tr;
+}
+
+function renderTable() {
+    // JS-22: Clear before rendering
+    resourceTable.innerHTML = '';
+    
+    // JS-23: Render loop
+    resources.forEach(resource => {
+        const row = createResourceRow(resource);
+        resourceTable.appendChild(row);
+    });
 }
 /**
  * TODO: Implement the renderTable function.
@@ -79,12 +91,12 @@ const tr = document.createElement('tr');
  */
 function renderTable() {
  // JS-22: Clear before rendering
-    resourceTableBody.innerHTML = '';
+ resourceTable.innerHTML = '';
     
     // JS-23: Render loop
     resources.forEach(resource => {
         const row = createResourceRow(resource);
-        resourceTableBody.appendChild(row);
+        resourceTable.appendChild(row);
     });
 }
 /**
@@ -106,9 +118,9 @@ function renderTable() {
  * 5. Call `renderTable()` to refresh the list.
  * 6. Reset the form.
  */
-function handleAddResource(event) {
+async function handleAddResource(event) {
   // ... your implementation here ...
-event.preventDefault();
+event.preventDefault(); // JS-24
     
     const title = document.getElementById('resource-title').value;
     const description = document.getElementById('resource-description').value;
@@ -122,19 +134,18 @@ event.preventDefault();
         const response = await fetch('./api/index.php', {
             method: method,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(bodyData)
+            body: JSON.stringify(bodyData) // JS-25
         });
         const result = await response.json();
 
         if (result.success) {
             if (editId) {
-                // Update local array
                 const index = resources.findIndex(r => r.id == editId);
                 resources[index] = { ...resources[index], title, description, link };
                 editId = null;
                 submitBtn.textContent = "Add Resource";
             } else {
-                // Add new to array
+                // JS-25: Add the new ID from API to the local store
                 resources.push({ id: result.id, title, description, link });
             }
             renderTable();
@@ -143,8 +154,7 @@ event.preventDefault();
     } catch (error) {
         console.error("Error saving resource:", error);
     }
-}  
- 
+}
 
 /**
  * TODO: Implement the handleTableClick function.
@@ -178,11 +188,11 @@ event.preventDefault();
  *    restoring the submit button text to "Add Resource".
  */
 async function handleTableClick(event) {
-  const id = event.target.dataset.id;
+const id = event.target.dataset.id;
     if (!id) return;
 
     if (event.target.classList.contains('delete-btn')) {
-        if (!confirm("Are you sure?")) return;
+        // JS-26: DELETE request
         const response = await fetch(`./api/index.php?id=${id}`, { method: 'DELETE' });
         const result = await response.json();
         if (result.success) {
@@ -192,6 +202,7 @@ async function handleTableClick(event) {
     }
 
     if (event.target.classList.contains('edit-btn')) {
+        // JS-27: Populate form
         const resource = resources.find(r => r.id == id);
         document.getElementById('resource-title').value = resource.title;
         document.getElementById('resource-description').value = resource.description;
@@ -201,7 +212,6 @@ async function handleTableClick(event) {
         document.getElementById('add-resource').textContent = "Update Resource";
     }
 }
-
       
 /**
  * TODO: Implement the loadAndInitialize function.
@@ -219,14 +229,18 @@ async function handleTableClick(event) {
  */
 async function loadAndInitialize() {
   // ... your implementation here ...
-  try {
+try {
+        // JS-28: Fetch initial data
         const response = await fetch('./api/index.php');
         const result = await response.json();
         resources = result.data || [];
+        
+        // JS-29: Initial render
         renderTable();
 
+        // JS-30: Attach listeners
         resourceForm.addEventListener('submit', handleAddResource);
-        resourceTableBody.addEventListener('click', handleTableClick);
+        resourceTable.addEventListener('click', handleTableClick);
     } catch (error) {
         console.error("Failed to load:", error);
     }

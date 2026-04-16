@@ -13,7 +13,7 @@
 
 // --- Global Data Store ---
 // This will hold the resources loaded from the API.
-var resources = [];
+let resources = [];
 let editId = null;
 
 // --- Element Selections ---
@@ -77,14 +77,13 @@ const tr = document.createElement('tr');
  * 3. For each resource, call `createResourceRow()` and
  *    append the returned <tr> to the table body.
  */
-function renderTable() {
+function renderTable(data = resources) {
     const tableBody = document.getElementById('resources-tbody');
-
     if (!tableBody) return;
 
     tableBody.innerHTML = '';
 
-    resources.forEach(resource => {
+    data.forEach(resource => {
         const row = createResourceRow(resource);
         tableBody.appendChild(row);
     });

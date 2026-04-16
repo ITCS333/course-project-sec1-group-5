@@ -13,7 +13,7 @@
 
 // --- Global Data Store ---
 // This will hold the resources loaded from the API.
-let resources = [];
+var resources = [];
 let editId = null;
 
 // --- Element Selections ---

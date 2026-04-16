@@ -78,16 +78,15 @@ const tr = document.createElement('tr');
  *    append the returned <tr> to the table body.
  */
 function renderTable() {
-    if (!resourceTable) {
-        console.error("Could not find #resources-tbody");
-        return;
-    }
+    const tableBody = document.getElementById('resources-tbody');
 
-    resourceTable.innerHTML = '';
+    if (!tableBody) return;
+
+    tableBody.innerHTML = '';
 
     resources.forEach(resource => {
         const row = createResourceRow(resource);
-        resourceTable.appendChild(row);
+        tableBody.appendChild(row);
     });
 }
 /**

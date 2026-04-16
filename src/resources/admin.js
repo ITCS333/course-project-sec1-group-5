@@ -109,7 +109,7 @@ function renderTable(data = resources) {
  */
 async function handleAddResource(event) {
   // ... your implementation here ...
-event.preventDefault(); // JS-24
+event.preventDefault(); 
     
     const title = document.getElementById('resource-title').value;
     const description = document.getElementById('resource-description').value;

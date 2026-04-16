@@ -70,17 +70,6 @@ const tr = document.createElement('tr');
 
     return tr;
 }
-
-function renderTable() {
-    // JS-22: Clear before rendering
-    resourceTable.innerHTML = '';
-    
-    // JS-23: Render loop
-    resources.forEach(resource => {
-        const row = createResourceRow(resource);
-        resourceTable.appendChild(row);
-    });
-}
 /**
  * TODO: Implement the renderTable function.
  * It should:

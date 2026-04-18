@@ -51,8 +51,8 @@ function getAllResources($db) {
 }
 
 function getResourceById($db, $resourceId) {
-    if (!is_numeric($resourceId)) {
-        sendResponse(['success' => false, 'message' => 'Invalid ID format.'], 400);
+    if (!$resourceId || !is_numeric($resourceId)) {
+        sendResponse(['success' => false, 'message' => 'Valid ID is required'], 400);
     }
 
     $stmt = $db->prepare("SELECT id, title, description, link, created_at FROM resources WHERE id = ?");
@@ -73,37 +73,27 @@ function createResource($db, $data) {
     }
 
     if (!validateUrl($data['link'])) {
-        sendResponse(['success' => false, 'message' => 'Invalid URL format.'], 400);
+        sendResponse(['success' => false, 'message' => 'Invalid URL format'], 400);
     }
 
     $title = sanitizeInput($data['title']);
     $desc = sanitizeInput($data['description'] ?? '');
-    $link = $data['link']; // URLs shouldn't be tag-stripped, just validated
+    $link = $data['link']; // Don't strip tags from a link, just validate it
 
     $stmt = $db->prepare("INSERT INTO resources (title, description, link) VALUES (?, ?, ?)");
     if ($stmt->execute([$title, $desc, $link])) {
-        sendResponse([
-            'success' => true, 
-            'message' => 'Resource created successfully.',
-            'id' => $db->lastInsertId()
-        ], 201);
+        sendResponse(['success' => true, 'id' => $db->lastInsertId(), 'message' => 'Resource created'], 201);
     } else {
-        sendResponse(['success' => false, 'message' => 'Database error during creation.'], 500);
+        sendResponse(['success' => false, 'message' => 'Database error'], 500);
     }
 }
 
 function updateResource($db, $data) {
     if (!isset($data['id']) || !is_numeric($data['id'])) {
-        sendResponse(['success' => false, 'message' => 'Valid Resource ID is required.'], 400);
+        sendResponse(['success' => false, 'message' => 'ID is required'], 400);
     }
 
-    // Check if resource exists
-    $check = $db->prepare("SELECT id FROM resources WHERE id = ?");
-    $check->execute([$data['id']]);
-    if (!$check->fetch()) {
-        sendResponse(['success' => false, 'message' => 'Resource not found.'], 404);
-    }
-
+    // Dynamic query building
     $fields = [];
     $params = [];
     if (isset($data['title'])) { $fields[] = "title = ?"; $params[] = sanitizeInput($data['title']); }
@@ -114,31 +104,35 @@ function updateResource($db, $data) {
     }
 
     if (empty($fields)) {
-        sendResponse(['success' => false, 'message' => 'No fields provided for update.'], 400);
+        sendResponse(['success' => false, 'message' => 'No fields to update'], 400);
     }
 
-    $params[] = $data['id']; // Add ID for the WHERE clause
+    $params[] = $data['id']; // ID must be the LAST parameter for the WHERE clause
     $stmt = $db->prepare("UPDATE resources SET " . implode(', ', $fields) . " WHERE id = ?");
     
     if ($stmt->execute($params)) {
-        sendResponse(['success' => true, 'message' => 'Resource updated successfully.']);
+        if ($stmt->rowCount() > 0) {
+            sendResponse(['success' => true, 'message' => 'Resource updated']);
+        } else {
+            sendResponse(['success' => false, 'message' => 'Resource not found or no changes made'], 404);
+        }
     } else {
-        sendResponse(['success' => false, 'message' => 'Update failed.'], 500);
+        sendResponse(['success' => false, 'message' => 'Update failed'], 500);
     }
 }
 
 function deleteResource($db, $resourceId) {
     if (!$resourceId || !is_numeric($resourceId)) {
-        sendResponse(['success' => false, 'message' => 'Valid Resource ID is required.'], 400);
+        sendResponse(['success' => false, 'message' => 'Valid ID is required'], 400);
     }
 
     $stmt = $db->prepare("DELETE FROM resources WHERE id = ?");
     $stmt->execute([$resourceId]);
-
+    
     if ($stmt->rowCount() > 0) {
-        sendResponse(['success' => true, 'message' => 'Resource deleted successfully.']);
+        sendResponse(['success' => true, 'message' => 'Resource deleted']);
     } else {
-        sendResponse(['success' => false, 'message' => 'Resource not found.'], 404);
+        sendResponse(['success' => false, 'message' => 'Resource not found'], 404);
     }
 }
 
@@ -147,8 +141,8 @@ function deleteResource($db, $resourceId) {
 // ============================================================================
 
 function getCommentsByResourceId($db, $resourceId) {
-    if (!is_numeric($resourceId)) {
-        sendResponse(['success' => false, 'message' => 'Invalid Resource ID.'], 400);
+    if (!$resourceId || !is_numeric($resourceId)) {
+        sendResponse(['success' => false, 'message' => 'Valid Resource ID required'], 400);
     }
 
     $stmt = $db->prepare("SELECT id, resource_id, author, text, created_at FROM comments_resource WHERE resource_id = ? ORDER BY created_at ASC");
@@ -159,40 +153,40 @@ function getCommentsByResourceId($db, $resourceId) {
 function createComment($db, $data) {
     $validation = validateRequiredFields($data, ['resource_id', 'author', 'text']);
     if (!$validation['valid']) {
-        sendResponse(['success' => false, 'message' => 'Missing fields.'], 400);
+        sendResponse(['success' => false, 'message' => 'Missing fields'], 400);
     }
 
-    // Verify parent resource exists
+    // Check if parent resource exists
     $check = $db->prepare("SELECT id FROM resources WHERE id = ?");
     $check->execute([$data['resource_id']]);
     if (!$check->fetch()) {
-        sendResponse(['success' => false, 'message' => 'Cannot comment on non-existent resource.'], 404);
+        sendResponse(['success' => false, 'message' => 'Resource not found'], 404);
     }
 
     $stmt = $db->prepare("INSERT INTO comments_resource (resource_id, author, text) VALUES (?, ?, ?)");
     if ($stmt->execute([$data['resource_id'], sanitizeInput($data['author']), sanitizeInput($data['text'])])) {
         $newId = $db->lastInsertId();
-        // Fetch full comment to return to UI
+        // Fetch it back to provide the client with the full object
         $fetch = $db->prepare("SELECT * FROM comments_resource WHERE id = ?");
         $fetch->execute([$newId]);
-        sendResponse(['success' => true, 'message' => 'Comment added.', 'data' => $fetch->fetch(PDO::FETCH_ASSOC)], 201);
+        sendResponse(['success' => true, 'data' => $fetch->fetch(PDO::FETCH_ASSOC)], 201);
     } else {
-        sendResponse(['success' => false, 'message' => 'Failed to save comment.'], 500);
+        sendResponse(['success' => false, 'message' => 'Failed to add comment'], 500);
     }
 }
 
 function deleteComment($db, $commentId) {
     if (!$commentId || !is_numeric($commentId)) {
-        sendResponse(['success' => false, 'message' => 'Valid Comment ID required.'], 400);
+        sendResponse(['success' => false, 'message' => 'Valid Comment ID required'], 400);
     }
 
     $stmt = $db->prepare("DELETE FROM comments_resource WHERE id = ?");
     $stmt->execute([$commentId]);
 
     if ($stmt->rowCount() > 0) {
-        sendResponse(['success' => true, 'message' => 'Comment deleted.']);
+        sendResponse(['success' => true, 'message' => 'Comment deleted']);
     } else {
-        sendResponse(['success' => false, 'message' => 'Comment not found.'], 404);
+        sendResponse(['success' => false, 'message' => 'Comment not found'], 404);
     }
 }
 
@@ -230,8 +224,8 @@ try {
     error_log("DB Error: " . $e->getMessage());
     sendResponse(['success' => false, 'message' => 'A database error occurred.'], 500);
 } catch (Exception $e) {
-    error_log("General Error: " . $e->getMessage());
-    sendResponse(['success' => false, 'message' => 'Internal Server Error.'], 500);
+    error_log("Error: " . $e->getMessage());
+    sendResponse(['success' => false, 'message' => 'Internal server error'], 500);
 }
 
 // ============================================================================

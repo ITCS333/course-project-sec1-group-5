@@ -2,28 +2,35 @@
 
 // ================= HEADERS =================
 header("Content-Type: application/json; charset=UTF-8");
+
+// (CORS won't affect PHPUnit, but safe to keep)
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
+// Handle OPTIONS
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
+    echo json_encode(['success' => true]);
     exit;
 }
 
 // ================= INIT =================
-require_once './config/Database.php';
+
+// ✅ FIXED PATH (THIS WAS BREAKING YOUR TESTS)
+require_once __DIR__ . '/config/Database.php';
 
 $database = new Database();
 $db = $database->getConnection();
 
 $method = $_SERVER['REQUEST_METHOD'];
-$data = json_decode(file_get_contents("php://input"), true);
+$data = json_decode(file_get_contents("php://input"), true) ?? [];
 
 $action = $_GET['action'] ?? null;
 $id = $_GET['id'] ?? null;
 $resource_id = $_GET['resource_id'] ?? null;
 $comment_id = $_GET['comment_id'] ?? null;
+
 
 // ================= RESOURCE FUNCTIONS =================
 
@@ -47,9 +54,8 @@ function getAllResources($db) {
     }
 
     $stmt->execute();
-    $resources = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    sendResponse(['success' => true, 'data' => $resources]);
+    sendResponse(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
 }
 
 function getResourceById($db, $id) {
@@ -83,13 +89,13 @@ function createResource($db, $data) {
         sendResponse(['success' => false, 'message' => 'Invalid URL'], 400);
     }
 
-    $title = sanitizeInput($data['title']);
-    $desc = sanitizeInput($data['description'] ?? '');
-    $link = $data['link'];
-
     $stmt = $db->prepare("INSERT INTO resources (title, description, link) VALUES (?, ?, ?)");
 
-    if ($stmt->execute([$title, $desc, $link])) {
+    if ($stmt->execute([
+        sanitizeInput($data['title']),
+        sanitizeInput($data['description'] ?? ''),
+        $data['link']
+    ])) {
         sendResponse([
             'success' => true,
             'message' => 'Resource created successfully',
@@ -166,6 +172,7 @@ function deleteResource($db, $id) {
 
     sendResponse(['success' => true, 'message' => 'Resource deleted successfully']);
 }
+
 
 // ================= COMMENTS =================
 
@@ -244,20 +251,28 @@ function deleteComment($db, $comment_id) {
     sendResponse(['success' => true, 'message' => 'Comment deleted successfully']);
 }
 
+
 // ================= ROUTER =================
 
 try {
 
     if ($method === 'GET') {
+
         if ($action === 'comments') {
+            if (!$resource_id) {
+                sendResponse(['success' => false, 'message' => 'resource_id required'], 400);
+            }
             getCommentsByResourceId($db, $resource_id);
+
         } elseif ($id) {
             getResourceById($db, $id);
+
         } else {
             getAllResources($db);
         }
 
     } elseif ($method === 'POST') {
+
         if ($action === 'comment') {
             createComment($db, $data);
         } else {
@@ -265,9 +280,11 @@ try {
         }
 
     } elseif ($method === 'PUT') {
+
         updateResource($db, $data);
 
     } elseif ($method === 'DELETE') {
+
         if ($action === 'delete_comment') {
             deleteComment($db, $comment_id);
         } else {
@@ -282,6 +299,7 @@ try {
     error_log($e->getMessage());
     sendResponse(['success' => false, 'message' => 'Internal Server Error'], 500);
 }
+
 
 // ================= HELPERS =================
 

@@ -21,53 +21,44 @@ $resource_id = $_GET['resource_id'] ?? null;
 $comment_id = $_GET['comment_id'] ?? null;
 
 
-// ===================== ROUTER =====================
 
 try {
 
-    // COMMENTS GET
     if ($method === 'GET' && $action === 'comments') {
         echo json_encode(getCommentsByResourceId($db, $resource_id));
         exit;
     }
 
-    // GET ONE RESOURCE
     if ($method === 'GET' && $id) {
         echo json_encode(getResourceById($db, $id));
         exit;
     }
 
-    // GET ALL
     if ($method === 'GET') {
         echo json_encode(getAllResources($db));
         exit;
     }
 
-    // CREATE COMMENT
     if ($method === 'POST' && $action === 'comment') {
         echo json_encode(createComment($db, $data));
         exit;
     }
 
-    // CREATE RESOURCE
     if ($method === 'POST') {
         echo json_encode(createResource($db, $data));
         exit;
     }
 
-    // UPDATE
     if ($method === 'PUT') {
         echo json_encode(updateResource($db, $data));
         exit;
     }
 
-    // DELETE COMMENT
     if ($method === 'DELETE' && $action === 'delete_comment') {
         echo json_encode(deleteComment($db, $comment_id));
         exit;
     }
 
-    // DELETE RESOURCE
     if ($method === 'DELETE') {
         echo json_encode(deleteResource($db, $id));
         exit;
@@ -82,7 +73,6 @@ try {
 }
 
 
-// ===================== FUNCTIONS =====================
 
 function sendResponse($data, $code = 200) {
     http_response_code($code);

@@ -33,29 +33,38 @@
   </header>
 
     <!-- TODO: Create the <main> content area. -->
-  <main></main>
+  <main>
 
         <!-- ============================================================
              Section 1: Add / Edit Assignment Form
              ============================================================ -->
         <!-- TODO: Create a <section> for the form. -->
+    <section>
 
             <!-- TODO: Add a sub-heading <h2> "Add a New Assignment". -->
+      <h2>Add a New Assignment</h2>
 
             <!-- TODO: Create a <form id="assignment-form"> (action can be "#").
                  The id is required by admin.js. -->
+      <form id="assignment-form" action="#">
 
                 <!-- TODO: Use a <fieldset> to group the form controls. -->
+        <fieldest>
                     <!-- TODO: Add a <legend>, e.g., "Assignment Details". -->
+          <legend>Assignment Details</legend>
 
                     <!-- TODO: Add a <label> and <input> for the assignment title.
                          - label for="assignment-title"
                          - input id="assignment-title", type="text", required -->
+          <label for="assignment-title">Assignment Title:</label>
+          <input id="assignment-title" type="text" required>
 
                     <!-- TODO: Add a <label> and <textarea> for the description.
                          - label for="assignment-description"
                          - textarea id="assignment-description", rows="5", required
                          - Maps to the description column in the assignments table. -->
+          <label for="assignment-description">Description:</label>
+          <textarea id="assignment-description" rows="5" required></textarea>
 
                     <!-- TODO: Add a <label> and <input> for the due date.
                          - label for="assignment-due-date"
@@ -77,8 +86,11 @@
                            change the button text to "Update Assignment" and
                            store the id being edited in a data attribute. -->
                 <!-- End of <fieldset> -->
+          </fieldest>
             <!-- End of <form> -->
+      </form>
         <!-- End of form <section> -->
+    </section>
 
 
         <!-- ============================================================
@@ -125,5 +137,6 @@
         <!-- End of list <section> -->
 
     <!-- End of <main> -->
+  </main>
 </body>
 </html>

@@ -58,6 +58,38 @@ const assignmentsTbody = document.getElementById('assignments-tbody');
  */
 function createAssignmentRow(assignment) {
   // ... your implementation here ...
+  const row = document.createElement("tr");
+
+  const titleTd = document.createElement("td");
+  titleTd.textContent = assignment.title;
+
+  const dueDateTd = document.createElement("td");
+  dueDateTd.textContent = assignment.due_date;
+
+  const descriptionTd = document.createElement("td");
+  descriptionTd.textContent = assignment.description;
+
+  const actionsTd = document.createElement("td");
+
+  const editBtn = document.createElement("button");
+  editBtn.className = "edit-btn";
+  editBtn.dataset.id = assignment.id;
+  editBtn.textContent = "Edit";
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.className = "delete-btn";
+  deleteBtn.dataset.id = assignment.id;
+  deleteBtn.textContent = "Delete";
+
+  actionsTd.appendChild(editBtn);
+  actionsTd.appendChild(deleteBtn);
+
+  row.appendChild(titleTd);
+  row.appendChild(dueDateTd);
+  row.appendChild(descriptionTd);
+  row.appendChild(actionsTd);
+
+  return row;
 }
 
 /**
@@ -71,6 +103,12 @@ function createAssignmentRow(assignment) {
  */
 function renderTable() {
   // ... your implementation here ...
+  assignmentsTbody.innerHTML = "";
+
+  assignments.forEach(assignment => {
+    const row = createAssignmentRow(assignment);
+    assignmentsTbody.appendChild(row);
+  });
 }
 
 /**

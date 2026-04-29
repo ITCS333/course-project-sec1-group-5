@@ -33,8 +33,10 @@ let assignments = [];
 
 // --- Element Selections ---
 // TODO: Select the assignment form by id 'assignment-form'.
+const assignmentForm = document.getElementById('assignment-form');
 
 // TODO: Select the assignments table body by id 'assignments-tbody'.
+const assignmentsTbody = document.getElementById('assignments-tbody');
 
 // --- Functions ---
 

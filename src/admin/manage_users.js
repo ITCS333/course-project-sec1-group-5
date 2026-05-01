@@ -107,7 +107,9 @@ function handleChangePassword(event) {
         return;
     }
 
-   
+   document.getElementById("current-password").value = "";
+document.getElementById("new-password").value = "";
+document.getElementById("confirm-password").value = "";
     const id = 1;
 
     fetch("../api/index.php?action=change_password", {
@@ -319,29 +321,36 @@ function handleSearch(event) {
  * 6. Call renderTable(users) to update the view.
  */
 function handleSort(event) {
-    const index = event.currentTarget.cellIndex;
+    const th = event.currentTarget;
+    const index = th.cellIndex;
 
     const keyMap = ["name", "email", "is_admin"];
     const key = keyMap[index];
 
-    let direction = event.currentTarget.getAttribute("data-sort-dir") || "asc";
-    direction = direction === "asc" ? "desc" : "asc";
+    let dir = th.getAttribute("data-sort-dir");
 
-    event.currentTarget.setAttribute("data-sort-dir", direction);
+    if (dir === "asc") {
+        dir = "desc";
+    } else {
+        dir = "asc";
+    }
+
+    th.setAttribute("data-sort-dir", dir);
 
     users.sort((a, b) => {
         if (key === "is_admin") {
-            return direction === "asc" ? a[key] - b[key] : b[key] - a[key];
-        } else {
-            return direction === "asc"
-                ? a[key].localeCompare(b[key])
-                : b[key].localeCompare(a[key]);
+            return dir === "asc"
+                ? Number(a[key]) - Number(b[key])
+                : Number(b[key]) - Number(a[key]);
         }
+
+        return dir === "asc"
+            ? String(a[key]).localeCompare(String(b[key]))
+            : String(b[key]).localeCompare(String(a[key]));
     });
 
     renderTable(users);
 }
-
 /**
  * TODO: Implement the loadUsersAndInitialize function.
  * This function must be async.

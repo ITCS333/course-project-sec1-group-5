@@ -50,7 +50,7 @@ const assignmentTitle = document.getElementById('assignment-title');
 const assignmentDueDate = document.getElementById('assignment-due-date');
 const assignmentDescription = document.getElementById('assignment-description');
 
-const assignmentFilesList = document.getElementById('assignment-files');
+const assignmentFilesList = document.getElementById('assignment-files-list');
 const commentList = document.getElementById('comment-list');
 
 const commentForm = document.getElementById('comment-form');

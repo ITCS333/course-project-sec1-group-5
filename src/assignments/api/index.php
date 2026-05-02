@@ -90,19 +90,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // TODO: Include the shared database connection file.
 // require_once __DIR__ . '/../../common/db.php';
+require_once __DIR__ . '/../../common/db.php';
 
 
 // TODO: Get the PDO database connection.
 // $db = getDBConnection();
+$db = getDBConnection();
 
 
 // TODO: Read the HTTP request method.
 // $method = $_SERVER['REQUEST_METHOD'];
+$method = $_SERVER['REQUEST_METHOD'];
 
 
 // TODO: Read and decode the request body for POST and PUT requests.
 // $rawData = file_get_contents('php://input');
 // $data    = json_decode($rawData, true) ?? [];
+$rawData = file_get_contents('php://input');
+
+$data = json_decode($rawData, true) ?? [];
 
 
 // TODO: Read query parameters.
@@ -110,6 +116,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // $id           = $_GET['id']            ?? null;  // integer assignment id
 // $assignmentId = $_GET['assignment_id'] ?? null;  // integer assignment id for comments queries
 // $commentId    = $_GET['comment_id']    ?? null;  // integer comment id
+$action       = $_GET['action']        ?? null;
+$id           = $_GET['id']            ?? null; 
+$assignmentId = $_GET['assignment_id'] ?? null;
+$commentId    = $_GET['comment_id']    ?? null; 
 
 
 // ============================================================================
@@ -133,28 +143,72 @@ function getAllAssignments(PDO $db): void
     // TODO: Build the base SELECT query.
     // SELECT id, title, description, due_date, files, created_at, updated_at
     // FROM assignments
+    $sql = "SELECT id, title, description, due_date, files, created_at, updated_at
+        FROM assignments";
 
     // TODO: If $_GET['search'] is provided and non-empty, append:
     // WHERE title LIKE :search OR description LIKE :search
     // Bind '%' . $search . '%' to :search.
+    $search = $_GET['search'] ?? null;
+    
+    if (!empty($search)) {
+    $sql .= " WHERE title LIKE :search OR description LIKE :search";
+    }
+    
+    $stmt = $db->prepare($sql);
+    
+    if (!empty($search)) {
+    $stmt->bindValue(':search', '%' . $search . '%', PDO::PARAM_STR);
+    }
 
     // TODO: Validate $_GET['sort'] against the whitelist
     // [title, due_date, created_at].
     // Default to 'due_date' if missing or invalid.
+    $allowedSort = ['title', 'due_date', 'created_at'];
+    
+    $sort = $_GET['sort'] ?? 'due_date';
+    
+    if (!in_array($sort, $allowedSort, true)) {
+    $sort = 'due_date';
+    }
 
     // TODO: Validate $_GET['order'] against [asc, desc].
     // Default to 'asc' if missing or invalid.
+    $allowedOrder = ['asc', 'desc'];
+    
+    $order = strtolower($_GET['order'] ?? 'asc');
+    
+    if (!in_array($order, $allowedOrder, true)) {
+    $order = 'asc';
+    }
 
     // TODO: Append ORDER BY {sort} {order} to the query.
+    $sql .= " ORDER BY $sort $order";
 
     // TODO: Prepare, bind (if searching), and execute the statement.
+    $stmt = $db->prepare($sql);
+    
+    if (!empty($search)) {
+    $stmt->bindValue(':search', '%' . $search . '%', PDO::PARAM_STR);
+    }
+    
+    $stmt->execute();
 
     // TODO: Fetch all rows as an associative array.
+    $assignments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // TODO: For each row, decode the files column:
     // $row['files'] = json_decode($row['files'], true) ?? [];
+    foreach ($assignments as &$row) {
+        $row['files'] = json_decode($row['files'], true) ?? [];
+    }
+    unset($row);
 
     // TODO: Call sendResponse(['success' => true, 'data' => $assignments]);
+    sendResponse([
+                 'success' => true,
+                 'data' => $assignments
+                 ]);
 }
 
 

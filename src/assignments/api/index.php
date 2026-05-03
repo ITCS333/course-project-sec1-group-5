@@ -90,19 +90,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // TODO: Include the shared database connection file.
 // require_once __DIR__ . '/../../common/db.php';
+require_once __DIR__ . '/../../common/db.php';
 
 
 // TODO: Get the PDO database connection.
 // $db = getDBConnection();
+$db = getDBConnection();
 
 
 // TODO: Read the HTTP request method.
 // $method = $_SERVER['REQUEST_METHOD'];
+$method = $_SERVER['REQUEST_METHOD'];
 
 
 // TODO: Read and decode the request body for POST and PUT requests.
 // $rawData = file_get_contents('php://input');
 // $data    = json_decode($rawData, true) ?? [];
+$rawData = file_get_contents('php://input');
+
+$data = json_decode($rawData, true) ?? [];
 
 
 // TODO: Read query parameters.
@@ -110,6 +116,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // $id           = $_GET['id']            ?? null;  // integer assignment id
 // $assignmentId = $_GET['assignment_id'] ?? null;  // integer assignment id for comments queries
 // $commentId    = $_GET['comment_id']    ?? null;  // integer comment id
+$action       = $_GET['action']        ?? null;
+$id           = $_GET['id']            ?? null; 
+$assignmentId = $_GET['assignment_id'] ?? null;
+$commentId    = $_GET['comment_id']    ?? null; 
 
 
 // ============================================================================
@@ -133,28 +143,72 @@ function getAllAssignments(PDO $db): void
     // TODO: Build the base SELECT query.
     // SELECT id, title, description, due_date, files, created_at, updated_at
     // FROM assignments
+    $sql = "SELECT id, title, description, due_date, files, created_at, updated_at
+        FROM assignments";
 
     // TODO: If $_GET['search'] is provided and non-empty, append:
     // WHERE title LIKE :search OR description LIKE :search
     // Bind '%' . $search . '%' to :search.
+    $search = $_GET['search'] ?? null;
+    
+    if (!empty($search)) {
+    $sql .= " WHERE title LIKE :search OR description LIKE :search";
+    }
+    
+    $stmt = $db->prepare($sql);
+    
+    if (!empty($search)) {
+    $stmt->bindValue(':search', '%' . $search . '%', PDO::PARAM_STR);
+    }
 
     // TODO: Validate $_GET['sort'] against the whitelist
     // [title, due_date, created_at].
     // Default to 'due_date' if missing or invalid.
+    $allowedSort = ['title', 'due_date', 'created_at'];
+    
+    $sort = $_GET['sort'] ?? 'due_date';
+    
+    if (!in_array($sort, $allowedSort, true)) {
+    $sort = 'due_date';
+    }
 
     // TODO: Validate $_GET['order'] against [asc, desc].
     // Default to 'asc' if missing or invalid.
+    $allowedOrder = ['asc', 'desc'];
+    
+    $order = strtolower($_GET['order'] ?? 'asc');
+    
+    if (!in_array($order, $allowedOrder, true)) {
+    $order = 'asc';
+    }
 
     // TODO: Append ORDER BY {sort} {order} to the query.
+    $sql .= " ORDER BY $sort $order";
 
     // TODO: Prepare, bind (if searching), and execute the statement.
+    $stmt = $db->prepare($sql);
+    
+    if (!empty($search)) {
+    $stmt->bindValue(':search', '%' . $search . '%', PDO::PARAM_STR);
+    }
+    
+    $stmt->execute();
 
     // TODO: Fetch all rows as an associative array.
+    $assignments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // TODO: For each row, decode the files column:
     // $row['files'] = json_decode($row['files'], true) ?? [];
+    foreach ($assignments as &$row) {
+        $row['files'] = json_decode($row['files'], true) ?? [];
+    }
+    unset($row);
 
     // TODO: Call sendResponse(['success' => true, 'data' => $assignments]);
+    sendResponse([
+                 'success' => true,
+                 'data' => $assignments
+                 ]);
 }
 
 
@@ -171,15 +225,47 @@ function getAssignmentById(PDO $db, $id): void
 {
     // TODO: Validate that $id is provided and numeric.
     // If not, call sendResponse with HTTP 400.
+    if ($id === null || !is_numeric($id)) {
+        http_response_code(400);
+        sendResponse([
+                     'success' => false,
+                     'error' => 'Invalid or missing id'
+                     ]);
+    }
 
     // TODO: SELECT id, title, description, due_date, files,
     //       created_at, updated_at FROM assignments WHERE id = ?
+    $sql = "SELECT id, title, description, due_date, files,
+    created_at, updated_at
+    FROM assignments
+    WHERE id = ?";
+
+    $stmt = $db->prepare($sql);
+    $stmt->execute([$id]);
 
     // TODO: Fetch one row. Decode the files JSON:
     // $assignment['files'] = json_decode($assignment['files'], true) ?? [];
+    $assignment = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($assignment) {
+        $assignment['files'] = json_decode($assignment['files'], true) ?? [];
+    }
 
     // TODO: If found, sendResponse success with the assignment.
     // If not found, sendResponse error with HTTP 404.
+    if ($assignment) {
+        sendResponse([
+                     'success' => true,
+                     'data' => $assignment
+                     ]);
+    } 
+    else {
+        http_response_code(404);
+        sendResponse([
+                     'success' => false,
+                     'error' => 'Assignment not found'
+                     ]);
+    }
 }
 
 
@@ -202,23 +288,71 @@ function createAssignment(PDO $db, array $data): void
 {
     // TODO: Validate that title, description, and due_date are present
     // and non-empty. If missing, sendResponse HTTP 400.
+    if (
+        empty($data['title']) ||
+        empty($data['description']) ||
+        empty($data['due_date'])
+    ) {
+        http_response_code(400);
+        sendResponse([
+                     'success' => false,
+                     'error' => 'Missing required fields: title, description, due_date'
+                     ]);
+        return;
+    }
 
     // TODO: Trim title, description, and due_date.
+    $title       = trim($data['title'] ?? '');
+    $description = trim($data['description'] ?? '');
+    $due_date    = trim($data['due_date'] ?? '');
 
     // TODO: Validate due_date format using
     // DateTime::createFromFormat('Y-m-d', $due_date).
     // If invalid, sendResponse HTTP 400.
+    $date = DateTime::createFromFormat('Y-m-d', $due_date);
+    
+    if (!$date || $date->format('Y-m-d') !== $due_date) {
+        http_response_code(400);
+        sendResponse([
+                     'success' => false,
+                     'error' => 'Invalid due_date format. Expected YYYY-MM-DD'
+                     ]);
+        return;
+    }
 
     // TODO: Handle files: if provided and is an array, json_encode it.
     // Otherwise use json_encode([]).
+    if (isset($data['files']) && is_array($data['files'])) {
+        $files = json_encode($data['files']);
+    } 
+    else {
+        $files = json_encode([]);
+    }
 
     // TODO: INSERT INTO assignments (title, description, due_date, files)
     //       VALUES (?, ?, ?, ?)
     // Note: id, created_at, and updated_at are set automatically by MySQL.
+    $sql = "INSERT INTO assignments (title, description, due_date, files)
+        VALUES (?, ?, ?, ?)";
 
     // TODO: If rowCount() > 0, sendResponse HTTP 201 with the new integer id
     // from $db->lastInsertId().
     // Otherwise sendResponse HTTP 500.
+    if ($stmt->rowCount() > 0) {
+        http_response_code(201);
+        sendResponse([
+                     'success' => true,
+                     'message' => 'Assignment created successfully',
+                     'id' => (int)$db->lastInsertId()
+                     ]);
+    } 
+    else {
+        http_response_code(500);
+        sendResponse([
+                     'success' => false,
+                     'error' => 'Failed to create assignment'
+                     ]);
+    }
 }
 
 
@@ -241,24 +375,116 @@ function updateAssignment(PDO $db, array $data): void
 {
     // TODO: Validate that $data['id'] is present.
     // If not, sendResponse HTTP 400.
+    if (!isset($data['id'])) {
+        http_response_code(400);
+        sendResponse([
+                     'success' => false,
+                     'error' => 'Missing required field: id'
+                     ]);
+        return;
+    }
 
     // TODO: Check that an assignment with this id exists.
     // If not, sendResponse HTTP 404.
+    $stmt = $db->prepare("SELECT id FROM assignments WHERE id = ?");
+    $stmt->execute([$data['id']]);
+    
+    if (!$stmt->fetch()) {
+        http_response_code(404);
+        sendResponse([
+                     'success' => false,
+                     'error' => 'Assignment not found'
+                     ]);
+        return;
+    }
 
     // TODO: Dynamically build the SET clause for whichever of
     // title, description, due_date, files are present in $data.
     // - If due_date is included, validate its format.
     // - If files is included, json_encode it.
+    $fields = [];
+    $params = [];
+    
+    if (isset($data['title'])) {
+        $fields[] = "title = ?";
+        $params[] = trim($data['title']);
+    }
+    
+    if (isset($data['description'])) {
+        $fields[] = "description = ?";
+        $params[] = trim($data['description']);
+    }
+    
+    if (isset($data['due_date'])) {
+        $due_date = trim($data['due_date']);
+        
+        $date = DateTime::createFromFormat('Y-m-d', $due_date);
+        if (!$date || $date->format('Y-m-d') !== $due_date) {
+            http_response_code(400);
+            sendResponse([
+                         'success' => false,
+                         'error' => 'Invalid due_date format. Expected YYYY-MM-DD'
+                         ]);
+            return;
+        }
+        
+        $fields[] = "due_date = ?";
+        $params[] = $due_date;
+    }
+    
+    if (isset($data['files'])) {
+        $files = is_array($data['files']) ? $data['files'] : [];
+        $fields[] = "files = ?";
+        $params[] = json_encode($files);
+    }
+    
+    if (empty($fields)) {
+        http_response_code(400);
+        sendResponse([
+                     'success' => false,
+                     'error' => 'No fields provided to update'
+                     ]);
+        return;
+    }
 
     // TODO: If no updatable fields are present, sendResponse HTTP 400.
+    if (empty($fields)) {
+        http_response_code(400);
+        sendResponse([
+                     'success' => false,
+                     'error' => 'No fields provided to update'
+                     ]);
+        return;
+    }
 
     // TODO: updated_at is refreshed automatically by MySQL
     //       (ON UPDATE CURRENT_TIMESTAMP) — no need to set it manually.
+    $sql = "UPDATE assignments SET " . implode(', ', $fields) . " WHERE id = ?";
 
     // TODO: Build: UPDATE assignments SET {clauses} WHERE id = ?
     // Prepare, bind all SET values, then bind id, and execute.
+    $sql = "UPDATE assignments SET " . implode(', ', $fields) . " WHERE id = ?";
+    
+    $params[] = $data['id'];
+    
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
 
     // TODO: sendResponse HTTP 200 on success, HTTP 500 on failure.
+    if ($stmt->rowCount() > 0) {
+        http_response_code(200);
+        sendResponse([
+                     'success' => true,
+                     'message' => 'Assignment updated successfully'
+                     ]);
+    } 
+    else {
+        http_response_code(500);
+        sendResponse([
+                     'success' => false,
+                     'error' => 'Failed to update assignment'
+                     ]);
+    }
 }
 
 
@@ -277,15 +503,50 @@ function deleteAssignment(PDO $db, $id): void
 {
     // TODO: Validate that $id is provided and numeric.
     // If not, sendResponse HTTP 400.
+    if ($id === null || !is_numeric($id)) {
+        http_response_code(400);
+        sendResponse([
+                     'success' => false,
+                     'error' => 'Invalid or missing id'
+                     ]);
+        return;
+    }
 
     // TODO: Check that an assignment with this id exists.
     // If not, sendResponse HTTP 404.
+    $stmt = $db->prepare("SELECT id FROM assignments WHERE id = ?");
+    $stmt->execute([$id]);
+    
+    if (!$stmt->fetch()) {
+        http_response_code(404);
+        sendResponse([
+                     'success' => false,
+                     'error' => 'Assignment not found'
+                     ]);
+        return;
+    }
 
     // TODO: DELETE FROM assignments WHERE id = ?
     // (comments_assignment rows are removed automatically by ON DELETE CASCADE.)
+    $stmt = $db->prepare("DELETE FROM assignments WHERE id = ?");
+    $stmt->execute([$id]);
 
     // TODO: If rowCount() > 0, sendResponse HTTP 200.
     // Otherwise sendResponse HTTP 500.
+    if ($stmt->rowCount() > 0) {
+        http_response_code(200);
+        sendResponse([
+                     'success' => true,
+                     'message' => 'Assignment deleted successfully'
+                     ]);
+    } 
+    else {
+        http_response_code(500);
+        sendResponse([
+                     'success' => false,
+                     'error' => 'Failed to delete assignment'
+                     ]);
+    }
 }
 
 
@@ -306,14 +567,35 @@ function getCommentsByAssignment(PDO $db, $assignmentId): void
 {
     // TODO: Validate that $assignmentId is provided and numeric.
     // If not, sendResponse HTTP 400.
+    if ($assignmentId === null || !is_numeric($assignmentId)) {
+        http_response_code(400);
+        sendResponse([
+                     'success' => false,
+                     'error' => 'Invalid or missing assignment_id'
+                     ]);
+        return;
+    }
 
     // TODO: SELECT id, assignment_id, author, text, created_at
     //       FROM comments_assignment
     //       WHERE assignment_id = ?
     //       ORDER BY created_at ASC
+        $sql = "SELECT id, assignment_id, author, text, created_at
+        FROM comments_assignment
+        WHERE assignment_id = ?
+        ORDER BY created_at ASC";
 
     // TODO: Fetch all rows. Return sendResponse with the array
     //       (empty array is valid).
+    $stmt = $db->prepare($sql);
+    $stmt->execute([$assignmentId]);
+
+    $comments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    sendResponse([
+                 'success' => true,
+                 'data' => $comments
+                 ]);
 }
 
 
@@ -334,18 +616,77 @@ function createComment(PDO $db, array $data): void
 {
     // TODO: Validate that assignment_id, author, and text are all present
     // and non-empty after trimming. If any are missing, sendResponse HTTP 400.
+    $assignment_id = trim($data['assignment_id'] ?? '');
+    $author        = trim($data['author'] ?? '');
+    $text          = trim($data['text'] ?? '');
+
+    if ($assignment_id === '' || $author === '' || $text === '') {
+        http_response_code(400);
+        sendResponse([
+                     'success' => false,
+                     'error' => 'Missing required fields: assignment_id, author, text'
+                     ]);
+        return;
+    }
 
     // TODO: Validate that assignment_id is numeric.
+    if (!is_numeric($assignment_id)) {
+        http_response_code(400);
+        sendResponse([
+                     'success' => false,
+                     'error' => 'Invalid assignment_id'
+                     ]);
+        return;
+    }
 
     // TODO: Check that an assignment with this id exists in the assignments
     // table. If not, sendResponse HTTP 404.
+    $stmt = $db->prepare("SELECT id FROM assignments WHERE id = ?");
+    $stmt->execute([$assignment_id]);
+
+    if (!$stmt->fetch()) {
+        http_response_code(404);
+        sendResponse([
+                     'success' => false,
+                     'error' => 'Assignment not found'
+                     ]);
+        return;
+    }
 
     // TODO: INSERT INTO comments_assignment (assignment_id, author, text)
     //       VALUES (?, ?, ?)
+    $sql = "INSERT INTO comments_assignment (assignment_id, author, text)
+            VALUES (?, ?, ?)";
+    $stmt = $db->prepare($sql);
+    $stmt->execute([$assignment_id, $author, $text]);
 
     // TODO: If rowCount() > 0, sendResponse HTTP 201 with the new id
     //       and the full new comment object.
     // Otherwise sendResponse HTTP 500.
+     if ($stmt->rowCount() > 0) {
+        $newId = (int)$db->lastInsertId();
+
+        http_response_code(201);
+        sendResponse([
+                     'success' => true,
+                     'message' => 'Comment created successfully',
+                     'id' => $newId,
+                     'data' => [
+                     'id' => $newId,
+                     'assignment_id' => (int)$assignment_id,
+                     'author' => $author,
+                     'text' => $text,
+                     'created_at' => date('Y-m-d H:i:s')
+                     ]
+                     ]);
+     } 
+     else {
+        http_response_code(500);
+        sendResponse([
+                     'success' => false,
+                     'error' => 'Failed to create comment'
+                     ]);
+    }
 }
 
 
@@ -360,14 +701,50 @@ function deleteComment(PDO $db, $commentId): void
 {
     // TODO: Validate that $commentId is provided and numeric.
     // If not, sendResponse HTTP 400.
-
+     if ($commentId === null || !is_numeric($commentId)) {
+        http_response_code(400);
+        sendResponse([ 
+                     'success' => false,
+                     'error' => 'Invalid or missing comment_id'
+                     ]);
+        return;
+    }
+       
     // TODO: Check that the comment exists in comments_assignment.
     // If not, sendResponse HTTP 404.
+    $stmt = $db->prepare("SELECT id FROM comments_assignment WHERE id = ?");
+    $stmt->execute([$commentId]);
+
+    if (!$stmt->fetch()) {
+        http_response_code(404);
+        sendResponse([
+                     'success' => false,
+                     'error' => 'Comment not found'
+                     ]);
+        return;
+    }
+
 
     // TODO: DELETE FROM comments_assignment WHERE id = ?
+    $stmt = $db->prepare("DELETE FROM comments_assignment WHERE id = ?");
+    $stmt->execute([$commentId]);
 
     // TODO: If rowCount() > 0, sendResponse HTTP 200.
     // Otherwise sendResponse HTTP 500.
+    if ($stmt->rowCount() > 0) {
+        http_response_code(200);
+        sendResponse([
+                     'success' => true,
+                     'message' => 'Comment deleted successfully'
+                     ]);
+    } 
+    else {
+        http_response_code(500);
+        sendResponse([
+                     'success' => false,
+                     'error' => 'Failed to delete comment'
+                     ]);
+    }
 }
 
 
@@ -381,45 +758,86 @@ try {
 
         // ?action=comments&assignment_id={id} → list comments for an assignment
         // TODO: if $action === 'comments', call getCommentsByAssignment($db, $assignmentId)
+         if ($action === 'comments') {
+            getCommentsByAssignment($db, $assignmentId);
+        }
 
         // ?id={id} → single assignment
         // TODO: elseif $id is set, call getAssignmentById($db, $id)
+        elseif ($id !== null) {
+            getAssignmentById($db, $id);
+        }
 
         // no parameters → all assignments (supports ?search, ?sort, ?order)
         // TODO: else call getAllAssignments($db)
+        else {
+            getAllAssignments($db);
+        }
 
     } elseif ($method === 'POST') {
 
         // ?action=comment → create a comment in comments_assignment
         // TODO: if $action === 'comment', call createComment($db, $data)
+        if ($action === 'comment') {
+            createComment($db, $data);
+        }
 
         // no action → create a new assignment
         // TODO: else call createAssignment($db, $data)
+         else {
+            createAssignment($db, $data);
+        }
 
     } elseif ($method === 'PUT') {
 
         // Update an assignment; id comes from the JSON body
         // TODO: call updateAssignment($db, $data)
+        updateAssignment($db, $data);
 
     } elseif ($method === 'DELETE') {
 
         // ?action=delete_comment&comment_id={id} → delete one comment
         // TODO: if $action === 'delete_comment', call deleteComment($db, $commentId)
+         if ($action === 'delete_comment') {
+            deleteComment($db, $commentId);
+        }
 
         // ?id={id} → delete an assignment (and its comments via CASCADE)
         // TODO: else call deleteAssignment($db, $id)
+        else {
+            deleteAssignment($db, $id);
+        }
 
     } else {
         // TODO: sendResponse HTTP 405 Method Not Allowed.
+         http_response_code(405);
+        sendResponse([
+                     'success' => false,
+                     'error' => 'Method Not Allowed'
+                     ]);
     }
 
 } catch (PDOException $e) {
     // TODO: Log the error with error_log().
     // Return a generic HTTP 500 — do NOT expose $e->getMessage() to clients.
+    error_log($e->getMessage());
+
+    http_response_code(500);
+    sendResponse([
+                 'success' => false,
+                 'error' => 'Database error'
+                 ]);
 
 } catch (Exception $e) {
     // TODO: Log the error with error_log().
     // Return HTTP 500 using sendResponse().
+    error_log($e->getMessage());
+
+    http_response_code(500);
+    sendResponse([
+                 'success' => false,
+                 'error' => 'Server error'
+                 ]);
 }
 
 
@@ -436,8 +854,11 @@ try {
 function sendResponse(array $data, int $statusCode = 200): void
 {
     // TODO: http_response_code($statusCode);
+    http_response_code($statusCode);
     // TODO: echo json_encode($data, JSON_PRETTY_PRINT);
+    echo json_encode($data, JSON_PRETTY_PRINT);
     // TODO: exit;
+    exit;
 }
 
 
@@ -450,7 +871,9 @@ function sendResponse(array $data, int $statusCode = 200): void
 function validateDate(string $date): bool
 {
     // TODO: $d = DateTime::createFromFormat('Y-m-d', $date);
+    $d = DateTime::createFromFormat('Y-m-d', $date);
     // TODO: return $d && $d->format('Y-m-d') === $date;
+    return $d && $d->format('Y-m-d') === $date;
 }
 
 
@@ -463,4 +886,5 @@ function validateDate(string $date): bool
 function sanitizeInput(string $data): string
 {
     // TODO: return htmlspecialchars(strip_tags(trim($data)), ENT_QUOTES, 'UTF-8');
+    return htmlspecialchars(strip_tags(trim($data)), ENT_QUOTES, 'UTF-8');
 }

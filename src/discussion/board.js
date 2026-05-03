@@ -31,7 +31,12 @@ let topics = [];
 // --- Element Selections ---
 // TODO: Select the new-topic form by id 'new-topic-form'.
 
+const newTopicForm = document.querySelector("#new-topic-form");
+
+
 // TODO: Select the topic list container by id 'topic-list-container'.
+
+const topicListContainer = document.querySelector("#topic-list-container");
 
 // --- Functions ---
 
@@ -62,6 +67,43 @@ let topics = [];
  */
 function createTopicArticle(topic) {
   // ... your implementation here ...
+
+const article = document.createElement("article");
+
+    const h3 = document.createElement("h3");
+
+    const link = document.createElement("a");
+    link.href = "topic.html?id=" + topic.id;
+    link.textContent = topic.subject;
+
+    h3.appendChild(link);
+
+    const footer = document.createElement("footer");
+    footer.textContent = "Posted by: " + topic.author + " on " + topic.created_at;
+
+    const div = document.createElement("div");
+
+    const editButton = document.createElement("button");
+    editButton.className = "edit-btn";
+    editButton.dataset.id = topic.id;
+    editButton.textContent = "Edit";
+
+    const deleteButton = document.createElement("button");
+    deleteButton.className = "delete-btn";
+    deleteButton.dataset.id = topic.id;
+    deleteButton.textContent = "Delete";
+
+    div.appendChild(editButton);
+    div.appendChild(deleteButton);
+
+    article.appendChild(h3);
+    article.appendChild(footer);
+    article.appendChild(div);
+
+    return article;
+
+
+
 }
 
 /**
@@ -75,6 +117,14 @@ function createTopicArticle(topic) {
  */
 function renderTopics() {
   // ... your implementation here ...
+
+    topicListContainer.innerHTML = "";
+
+    topics.forEach(function(topic) {
+        const article = createTopicArticle(topic);
+        topicListContainer.appendChild(article);
+    });
+  
 }
 
 /**
@@ -98,6 +148,63 @@ function renderTopics() {
  */
 async function handleCreateTopic(event) {
   // ... your implementation here ...
+
+   event.preventDefault();
+
+    const subjectInput = document.querySelector("#topic-subject");
+    const messageInput = document.querySelector("#topic-message");
+    const createButton = document.querySelector("#create-topic");
+
+    const subject = subjectInput.value.trim();
+    const message = messageInput.value.trim();
+
+    if (subject === "" || message === "") {
+        return;
+    }
+
+    const editId = createButton.dataset.editId;
+
+    if (editId) {
+        await handleUpdateTopic(editId, {
+            subject: subject,
+            message: message
+        });
+
+        createButton.textContent = "Create Topic";
+        delete createButton.dataset.editId;
+        newTopicForm.reset();
+
+        return;
+    }
+
+const response = await fetch("./api/index.php", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            subject: subject,
+            message: message,
+            author: "Student"
+        })
+    });
+
+    const result = await response.json();
+
+    if (result.success === true) {
+        const newTopic = {
+            id: result.id,
+            subject: subject,
+            message: message,
+            author: "Student",
+            created_at: result.created_at || ""
+        };
+
+        topics.push(newTopic);
+        renderTopics();
+        newTopicForm.reset();
+    }
+
 }
 
 /**
@@ -116,6 +223,37 @@ async function handleCreateTopic(event) {
  */
 async function handleUpdateTopic(id, fields) {
   // ... your implementation here ...
+
+  const response = await fetch("./api/index.php", {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            id: id,
+            subject: fields.subject,
+            message: fields.message
+        })
+    });
+
+    const result = await response.json();
+
+    if (result.success === true) {
+
+        const topic = topics.find(function(item) {
+            return item.id == id;
+        });
+
+        if (topic) {
+            topic.subject = fields.subject;
+            topic.message = fields.message;
+        }
+
+
+        renderTopics();
+
+      }
+
 }
 
 /**
@@ -138,6 +276,46 @@ async function handleUpdateTopic(id, fields) {
  */
 async function handleTopicListClick(event) {
   // ... your implementation here ...
+
+ if (event.target.classList.contains("delete-btn")) {
+        const id = event.target.dataset.id;
+
+        const response = await fetch("./api/index.php?id=" + id, {
+            method: "DELETE"
+        });
+
+        const result = await response.json();
+
+        if (result.success === true) {
+            topics = topics.filter(function(topic) {
+                return topic.id != id;
+            });
+
+            renderTopics();
+        }
+    }
+
+    if (event.target.classList.contains("edit-btn")) {
+        const id = event.target.dataset.id;
+
+        const topic = topics.find(function(item) {
+            return item.id == id;
+        });
+
+        if (!topic) {
+            return;
+        }
+
+        document.querySelector("#topic-subject").value = topic.subject;
+        document.querySelector("#topic-message").value = topic.message;
+
+        const createButton = document.querySelector("#create-topic");
+        createButton.textContent = "Update Topic";
+        createButton.dataset.editId = topic.id;
+    }
+  
+
+
 }
 
 /**
@@ -155,6 +333,18 @@ async function handleTopicListClick(event) {
  */
 async function loadAndInitialize() {
   // ... your implementation here ...
+
+  const response = await fetch("./api/index.php");
+    const result = await response.json();
+
+    if (result.success === true) {
+        topics = result.data;
+        renderTopics();
+    }
+
+    newTopicForm.addEventListener("submit", handleCreateTopic);
+    topicListContainer.addEventListener("click", handleTopicListClick);
+
 }
 
 // --- Initial Page Load ---

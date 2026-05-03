@@ -1,0 +1,158 @@
+/* --------------------------------------------------
+   Base Styles
+-------------------------------------------------- */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+}
+
+/* --------------------------------------------------
+   Layout Containers
+-------------------------------------------------- */
+header {
+    background-color: #0d6efd;
+    color: white;
+    padding: 15px;
+    text-align: center;
+}
+
+main {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 10px;
+}
+/* --------------------------------------------------
+   Sections
+-------------------------------------------------- */
+section {
+    background-color: white;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+/* --------------------------------------------------
+   Headings
+-------------------------------------------------- */
+h1, h2 {
+    margin-bottom: 15px;
+}
+
+/* --------------------------------------------------
+   Form Styling
+-------------------------------------------------- */
+form {
+    margin-top: 10px;
+}
+
+fieldset {
+    border: 1px solid #ced4da;
+    padding: 15px;
+    border-radius: 6px;
+}
+
+legend {
+    font-weight: bold;
+    padding: 0 5px;
+}
+
+label {
+    display: block;
+    margin-top: 10px;
+    font-weight: 500;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+textarea {
+    resize: vertical;
+}
+
+/* --------------------------------------------------
+   Buttons (Bootstrap style)
+-------------------------------------------------- */
+button {
+    margin-top: 15px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    background-color: #042350;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0b5ed7;
+}
+
+/* Edit button */
+.edit-btn {
+    background-color: #ffc107;
+    color: black;
+}
+
+.edit-btn:hover {
+    background-color: #e0a800;
+}
+
+/* Delete button */
+.delete-btn,
+.delete-reply-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+.delete-btn:hover,
+.delete-reply-btn:hover {
+    background-color: #bb2d3b;
+}
+
+/* --------------------------------------------------
+   Topic / Reply Cards
+-------------------------------------------------- */
+article {
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #ffffff;
+}
+
+article h3 {
+    margin: 0;
+}
+
+article a {
+    text-decoration: none;
+    color: #0d6efd;
+}
+
+article a:hover {
+    text-decoration: underline;
+}
+
+/* --------------------------------------------------
+   Footer Text
+-------------------------------------------------- */
+footer {
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+/* --------------------------------------------------
+   Reply Section
+-------------------------------------------------- */
+#replies-section {
+    margin-top: 20px;
+}

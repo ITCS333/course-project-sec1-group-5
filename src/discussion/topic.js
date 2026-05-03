@@ -45,6 +45,12 @@ let currentReplies = [];
 // TODO: Select each element by its id:
 //   topicSubject, opMessage, opFooter,
 //   replyListContainer, replyForm, newReplyText.
+const topicSubject = document.querySelector("#topic-subject");
+const opMessage = document.querySelector("#op-message");
+const opFooter = document.querySelector("#op-footer");
+const replyListContainer = document.querySelector("#reply-list-container");
+const replyForm = document.querySelector("#reply-form");
+const newReplyText = document.querySelector("#new-reply");
 
 // --- Functions ---
 
@@ -59,6 +65,9 @@ let currentReplies = [];
  */
 function getTopicIdFromURL() {
   // ... your implementation here ...
+
+  const params = new URLSearchParams(window.location.search);
+  return params.get("id");
 }
 
 /**
@@ -76,6 +85,10 @@ function getTopicIdFromURL() {
  */
 function renderOriginalPost(topic) {
   // ... your implementation here ...
+
+  const params = new URLSearchParams(window.location.search);
+  return params.get("id");
+
 }
 
 /**
@@ -99,6 +112,31 @@ function renderOriginalPost(topic) {
  */
 function createReplyArticle(reply) {
   // ... your implementation here ...
+
+  const article = document.createElement("article");
+
+   const p = document.createElement("p");
+    p.textContent = reply.text;
+
+    const footer = document.createElement("footer");
+    footer.textContent =
+      "Posted by: " + reply.author + " on " + reply.created_at;
+
+    const div = document.createElement("div");
+
+    const button = document.createElement("button");
+    button.className = "delete-reply-btn";
+    button.dataset.id = reply.id;
+    button.textContent = "Delete";
+
+   div.appendChild(button);
+
+    article.appendChild(p);
+    article.appendChild(footer);
+    article.appendChild(div);
+
+   return article;
+
 }
 
 /**
@@ -112,6 +150,13 @@ function createReplyArticle(reply) {
  */
 function renderReplies() {
   // ... your implementation here ...
+    replyListContainer.innerHTML = "";
+
+      currentReplies.forEach(function (reply) {
+      const article = createReplyArticle(reply);
+     replyListContainer.appendChild(article);
+  });
+
 }
 
 /**
@@ -136,6 +181,21 @@ function renderReplies() {
  */
 async function handleAddReply(event) {
   // ... your implementation here ...
+
+  event.preventDefault();
+
+  const replyText = newReplyText.value.trim();
+
+  if (replyText === "") {
+    return;
+  }
+ const result = await response.json();
+
+  if (result.success === true) {
+    currentReplies.push(result.data);
+    renderReplies();
+    newReplyText.value = "";
+  }
 }
 
 /**
@@ -151,6 +211,27 @@ async function handleAddReply(event) {
  */
 async function handleReplyListClick(event) {
   // ... your implementation here ...
+ if (event.target.classList.contains("delete-reply-btn")) {
+    const id = event.target.dataset.id;
+
+    const response = await fetch(
+      "./api/index.php?action=delete_reply&id=" + id,
+      {
+        method: "DELETE",
+      }
+    );
+
+    const result = await response.json();
+
+    if (result.success === true) {
+      currentReplies = currentReplies.filter(function (reply) {
+        return reply.id != id;
+      });
+
+      renderReplies();
+    }
+  }
+
 }
 
 /**
@@ -181,6 +262,41 @@ async function handleReplyListClick(event) {
  */
 async function initializePage() {
   // ... your implementation here ...
+
+  currentTopicId = getTopicIdFromURL();
+
+  if (!currentTopicId) {
+    topicSubject.textContent = "Topic not found.";
+    return;
+  }
+
+  const [topicRes, repliesRes] = await Promise.all([
+    fetch("./api/index.php?id=" + currentTopicId),
+    fetch(
+      "./api/index.php?action=replies&topic_id=" + currentTopicId
+    ),
+  ]);
+
+  const topicData = await topicRes.json();
+  const repliesData = await repliesRes.json();
+
+  if (topicData.success) {
+    renderOriginalPost(topicData.data);
+  } else {
+    topicSubject.textContent = "Topic not found.";
+    return;
+  }
+
+  currentReplies = repliesData.success ? repliesData.data : [];
+
+  renderReplies();
+
+  replyForm.addEventListener("submit", handleAddReply);
+  replyListContainer.addEventListener(
+    "click",
+    handleReplyListClick
+  );
+
 }
 
 // --- Initial Page Load ---

@@ -67,11 +67,8 @@
 // Allow HTTP methods: GET, POST, PUT, DELETE, OPTIONS.
 // Allow headers: Content-Type, Authorization.
 header("Content-Type: application/json");
-
 header("Access-Control-Allow-Origin: *");
-
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -334,6 +331,9 @@ function createAssignment(PDO $db, array $data): void
     // Note: id, created_at, and updated_at are set automatically by MySQL.
     $sql = "INSERT INTO assignments (title, description, due_date, files)
         VALUES (?, ?, ?, ?)";
+
+    $stmt = $db->prepare($sql);
+    $stmt->execute([$title, $description, $due_date, $files]);
 
     // TODO: If rowCount() > 0, sendResponse HTTP 201 with the new integer id
     // from $db->lastInsertId().

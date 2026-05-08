@@ -13,11 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once __DIR__ . '/../../common/db.php';
 
 $db = getDBConnection();
-
 $method = $_SERVER['REQUEST_METHOD'];
-
 $rawData = file_get_contents('php://input');
-
 $data = json_decode($rawData, true) ?? [];
 
 $action       = $_GET['action']        ?? null;
@@ -44,7 +41,6 @@ function getAllAssignments(PDO $db): void
     }
 
     $allowedSort = ['title', 'due_date', 'created_at'];
-    
     $sort = $_GET['sort'] ?? 'due_date';
     
     if (!in_array($sort, $allowedSort, true)) {
@@ -52,7 +48,6 @@ function getAllAssignments(PDO $db): void
     }
 
     $allowedOrder = ['asc', 'desc'];
-    
     $order = strtolower($_GET['order'] ?? 'asc');
     
     if (!in_array($order, $allowedOrder, true)) {
@@ -60,7 +55,6 @@ function getAllAssignments(PDO $db): void
     }
 
     $sql .= " ORDER BY $sort $order";
-
     $stmt = $db->prepare($sql);
     
     if (!empty($search)) {
@@ -68,7 +62,6 @@ function getAllAssignments(PDO $db): void
     }
     
     $stmt->execute();
-
     $assignments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($assignments as &$row) {

@@ -10,11 +10,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
-
 require_once __DIR__ . '/../../common/db.php';
 
 $db = getDBConnection();
@@ -191,8 +186,6 @@ function createAssignment(PDO $db, array $data): void
 
 function updateAssignment(PDO $db, array $data): void
 {
-    // TODO: Validate that $data['id'] is present.
-    // If not, sendResponse HTTP 400.
     if (!isset($data['id'])) {
         http_response_code(400);
         sendResponse([
@@ -267,8 +260,6 @@ function updateAssignment(PDO $db, array $data): void
                      ]);
         return;
     }
-
-    $sql = "UPDATE assignments SET " . implode(', ', $fields) . " WHERE id = ?";
 
     $sql = "UPDATE assignments SET " . implode(', ', $fields) . " WHERE id = ?";
     

@@ -160,7 +160,8 @@ async function handleAddAssignment(event) {
       description,
       files
     });
-  } else {
+  } 
+  else {
     const response = await fetch("./api/index.php", {
       method: "POST",
       headers: {
@@ -245,7 +246,7 @@ async function handleUpdateAssignment(id, fields) {
 
     const submitBtn = document.getElementById("add-assignment");
     submitBtn.textContent = "Add Assignment";
-    delete submitBtn.dataset.editId;
+    submitBtn.removeAttribute("data-edit-id");
   }
 }
 

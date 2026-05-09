@@ -79,11 +79,10 @@ function getAllAssignments(PDO $db): void
 function getAssignmentById(PDO $db, $id): void
 {
     if ($id === null || !is_numeric($id)) {
-        http_response_code(400);
         sendResponse([
                      'success' => false,
                      'error' => 'Invalid or missing id'
-                     ]);
+                     ], 400);
     }
 
     $sql = "SELECT id, title, description, due_date, files,
@@ -107,11 +106,10 @@ function getAssignmentById(PDO $db, $id): void
                      ]);
     } 
     else {
-        http_response_code(404);
         sendResponse([
                      'success' => false,
                      'error' => 'Assignment not found'
-                     ]);
+                     ], 404);
     }
 }
 
@@ -123,11 +121,10 @@ function createAssignment(PDO $db, array $data): void
         empty($data['description']) ||
         empty($data['due_date'])
     ) {
-        http_response_code(400);
         sendResponse([
                      'success' => false,
                      'error' => 'Missing required fields: title, description, due_date'
-                     ]);
+                     ], 400);
         return;
     }
 
@@ -138,11 +135,10 @@ function createAssignment(PDO $db, array $data): void
     $date = DateTime::createFromFormat('Y-m-d', $due_date);
     
     if (!$date || $date->format('Y-m-d') !== $due_date) {
-        http_response_code(400);
         sendResponse([
                      'success' => false,
                      'error' => 'Invalid due_date format. Expected YYYY-MM-DD'
-                     ]);
+                     ], 400);
         return;
     }
 
@@ -160,19 +156,17 @@ function createAssignment(PDO $db, array $data): void
     $stmt->execute([$title, $description, $due_date, $files]);
 
     if ($stmt->rowCount() > 0) {
-        http_response_code(201);
         sendResponse([
                      'success' => true,
                      'message' => 'Assignment created successfully',
                      'id' => (int)$db->lastInsertId()
-                     ]);
+                     ], 201);
     } 
     else {
-        http_response_code(500);
         sendResponse([
                      'success' => false,
                      'error' => 'Failed to create assignment'
-                     ]);
+                     ], 500);
     }
 }
 
@@ -180,11 +174,10 @@ function createAssignment(PDO $db, array $data): void
 function updateAssignment(PDO $db, array $data): void
 {
     if (!isset($data['id'])) {
-        http_response_code(400);
         sendResponse([
                      'success' => false,
                      'error' => 'Missing required field: id'
-                     ]);
+                     ], 400);
         return;
     }
 
@@ -192,11 +185,10 @@ function updateAssignment(PDO $db, array $data): void
     $stmt->execute([$data['id']]);
     
     if (!$stmt->fetch()) {
-        http_response_code(404);
         sendResponse([
                      'success' => false,
                      'error' => 'Assignment not found'
-                     ]);
+                     ], 404);
         return;
     }
 
@@ -218,11 +210,10 @@ function updateAssignment(PDO $db, array $data): void
         
         $date = DateTime::createFromFormat('Y-m-d', $due_date);
         if (!$date || $date->format('Y-m-d') !== $due_date) {
-            http_response_code(400);
             sendResponse([
                          'success' => false,
                          'error' => 'Invalid due_date format. Expected YYYY-MM-DD'
-                         ]);
+                         ], 400);
             return;
         }
         
@@ -237,11 +228,10 @@ function updateAssignment(PDO $db, array $data): void
     }
     
     if (empty($fields)) {
-        http_response_code(400);
         sendResponse([
                      'success' => false,
                      'error' => 'No fields provided to update'
-                     ]);
+                     ], 400);
         return;
     }
 
@@ -253,18 +243,16 @@ function updateAssignment(PDO $db, array $data): void
     $stmt->execute($params);
 
     if ($stmt->rowCount() > 0) {
-        http_response_code(200);
         sendResponse([
                      'success' => true,
                      'message' => 'Assignment updated successfully'
-                     ]);
+                     ], 200);
     } 
     else {
-        http_response_code(500);
         sendResponse([
                      'success' => false,
                      'error' => 'Failed to update assignment'
-                     ]);
+                     ], 500);
     }
 }
 
@@ -272,11 +260,10 @@ function updateAssignment(PDO $db, array $data): void
 function deleteAssignment(PDO $db, $id): void
 {
     if ($id === null || !is_numeric($id)) {
-        http_response_code(400);
         sendResponse([
                      'success' => false,
                      'error' => 'Invalid or missing id'
-                     ]);
+                     ], 400);
         return;
     }
 
@@ -284,11 +271,10 @@ function deleteAssignment(PDO $db, $id): void
     $stmt->execute([$id]);
     
     if (!$stmt->fetch()) {
-        http_response_code(404);
         sendResponse([
                      'success' => false,
                      'error' => 'Assignment not found'
-                     ]);
+                     ], 404);
         return;
     }
 
@@ -296,18 +282,16 @@ function deleteAssignment(PDO $db, $id): void
     $stmt->execute([$id]);
 
     if ($stmt->rowCount() > 0) {
-        http_response_code(200);
         sendResponse([
                      'success' => true,
                      'message' => 'Assignment deleted successfully'
-                     ]);
+                     ], 200);
     } 
     else {
-        http_response_code(500);
         sendResponse([
                      'success' => false,
                      'error' => 'Failed to delete assignment'
-                     ]);
+                     ], 500);
     }
 }
 
@@ -315,11 +299,10 @@ function deleteAssignment(PDO $db, $id): void
 function getCommentsByAssignment(PDO $db, $assignmentId): void
 {
     if ($assignmentId === null || !is_numeric($assignmentId)) {
-        http_response_code(400);
         sendResponse([
                      'success' => false,
                      'error' => 'Invalid or missing assignment_id'
-                     ]);
+                     ], 400);
         return;
     }
     
@@ -347,20 +330,18 @@ function createComment(PDO $db, array $data): void
     $text          = trim($data['text'] ?? '');
 
     if ($assignment_id === '' || $author === '' || $text === '') {
-        http_response_code(400);
         sendResponse([
                      'success' => false,
                      'error' => 'Missing required fields: assignment_id, author, text'
-                     ]);
+                     ], 400);
         return;
     }
 
     if (!is_numeric($assignment_id)) {
-        http_response_code(400);
         sendResponse([
                      'success' => false,
                      'error' => 'Invalid assignment_id'
-                     ]);
+                     ], 400);
         return;
     }
 
@@ -368,11 +349,10 @@ function createComment(PDO $db, array $data): void
     $stmt->execute([$assignment_id]);
 
     if (!$stmt->fetch()) {
-        http_response_code(404);
         sendResponse([
                      'success' => false,
                      'error' => 'Assignment not found'
-                     ]);
+                     ], 404);
         return;
     }
 
@@ -384,7 +364,6 @@ function createComment(PDO $db, array $data): void
      if ($stmt->rowCount() > 0) {
         $newId = (int)$db->lastInsertId();
 
-        http_response_code(201);
         sendResponse([
                      'success' => true,
                      'message' => 'Comment created successfully',
@@ -396,14 +375,13 @@ function createComment(PDO $db, array $data): void
                      'text' => $text,
                      'created_at' => date('Y-m-d H:i:s')
                      ]
-                     ]);
+                     ], 201);
      } 
      else {
-        http_response_code(500);
         sendResponse([
                      'success' => false,
                      'error' => 'Failed to create comment'
-                     ]);
+                     ], 500);
     }
 }
 
@@ -411,11 +389,10 @@ function createComment(PDO $db, array $data): void
 function deleteComment(PDO $db, $commentId): void
 {
      if ($commentId === null || !is_numeric($commentId)) {
-        http_response_code(400);
         sendResponse([ 
                      'success' => false,
                      'error' => 'Invalid or missing comment_id'
-                     ]);
+                     ], 400);
         return;
     }
 
@@ -423,11 +400,10 @@ function deleteComment(PDO $db, $commentId): void
     $stmt->execute([$commentId]);
 
     if (!$stmt->fetch()) {
-        http_response_code(404);
         sendResponse([
                      'success' => false,
                      'error' => 'Comment not found'
-                     ]);
+                     ], 404);
         return;
     }
 
@@ -435,18 +411,16 @@ function deleteComment(PDO $db, $commentId): void
     $stmt->execute([$commentId]);
 
     if ($stmt->rowCount() > 0) {
-        http_response_code(200);
         sendResponse([
                      'success' => true,
                      'message' => 'Comment deleted successfully'
-                     ]);
+                     ], 200);
     } 
     else {
-        http_response_code(500);
         sendResponse([
                      'success' => false,
                      'error' => 'Failed to delete comment'
-                     ]);
+                     ], 500);
     }
 }
 
@@ -485,32 +459,29 @@ try {
         
     } 
     else {
-         http_response_code(405);
         sendResponse([
                      'success' => false,
                      'error' => 'Method Not Allowed'
-                     ]);
+                     ], 405);
     }
 
 } 
 catch (PDOException $e) {
     error_log($e->getMessage());
 
-    http_response_code(500);
     sendResponse([
                  'success' => false,
                  'error' => 'Database error'
-                 ]);
+                 ], 500);
 
 } 
 catch (Exception $e) {
     error_log($e->getMessage());
 
-    http_response_code(500);
     sendResponse([
                  'success' => false,
                  'error' => 'Server error'
-                 ]);
+                 ], 500);
 }
 
 

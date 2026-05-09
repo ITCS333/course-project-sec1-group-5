@@ -245,15 +245,6 @@ function updateAssignment(PDO $db, array $data): void
         return;
     }
 
-    if (empty($fields)) {
-        http_response_code(400);
-        sendResponse([
-                     'success' => false,
-                     'error' => 'No fields provided to update'
-                     ]);
-        return;
-    }
-
     $sql = "UPDATE assignments SET " . implode(', ', $fields) . " WHERE id = ?";
     
     $params[] = $data['id'];

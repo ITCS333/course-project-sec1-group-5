@@ -17,6 +17,7 @@
   <title>Assignment Details</title>
 
     <!-- TODO: Link to your CSS framework or stylesheet. -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   
 
@@ -93,12 +94,7 @@
                  Comments come from the comments_assignment table
                  (columns: id, assignment_id, author, text, created_at).
                  Leave the div empty here. -->
-      <div id="comment-list">
-        <article>
-          <p>Comment text goes here.</p>
-          <footer>Posted by: Author Name</footer>
-        </article>
-      </div>
+      <div id="comment-list"></div>
 
             <!-- Subsection 2.2: Add a Comment Form -->
             <!-- TODO: Create a <form id="comment-form"> (action="#").
@@ -106,7 +102,7 @@
       <form id="comment-form" action="#">
 
                 <!-- TODO: Use a <fieldset> to group the controls. -->
-        <fieldest>
+        <fieldset>
                     <!-- TODO: Add a <legend>, e.g., "Ask a Question". -->
           <legend>Ask a Question</legend>
 
@@ -124,7 +120,7 @@
           <button type="submit">Post Comment</button>
           
                 <!-- End of <fieldset> -->
-        </fieldest>
+        </fieldset>
             <!-- End of <form> -->
       </form>
 

@@ -86,9 +86,10 @@ function getTopicIdFromURL() {
 function renderOriginalPost(topic) {
   // ... your implementation here ...
 
-  const params = new URLSearchParams(window.location.search);
-  return params.get("id");
 
+    topicSubject.textContent = topic.subject;
+    opMessage.textContent = topic.message;
+    opFooter.textContent = "Posted by: " + topic.author + " on " + topic.created_at;
 }
 
 /**
@@ -183,19 +184,31 @@ async function handleAddReply(event) {
   // ... your implementation here ...
 
   event.preventDefault();
+   const replyText = newReplyText.value.trim();
 
-  const replyText = newReplyText.value.trim();
+    if (replyText === "") {
+        return;
+    }
 
-  if (replyText === "") {
-    return;
-  }
+    const response = await fetch("./api/index.php?action=reply", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            topic_id: currentTopicId,
+            author: "Student",
+            text: replyText
+        })
+    });
  const result = await response.json();
 
-  if (result.success === true) {
-    currentReplies.push(result.data);
-    renderReplies();
-    newReplyText.value = "";
-  }
+    if (result.success === true) {
+        currentReplies.push(result.data);
+        renderReplies();
+        newReplyText.value = "";
+    }
+
 }
 
 /**

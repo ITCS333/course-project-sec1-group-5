@@ -278,6 +278,8 @@ function createTopic(PDO $db, array $data): void
         VALUES (?, ?, ?)
     ");
 
+    $stmt->execute([$subject, $message, $author]);
+
     // TODO: If rowCount() > 0, sendResponse HTTP 201 with the new integer
     // id from $db->lastInsertId().
     // Otherwise sendResponse HTTP 500.
@@ -455,14 +457,35 @@ function getRepliesByTopicId(PDO $db, $topicId): void
 {
     // TODO: Validate that $topicId is provided and numeric.
     // If not, sendResponse HTTP 400.
+    if (!$topicId || !is_numeric($topicId)) {
+        sendResponse([
+            "success" => false,
+            "message" => "Invalid topic id."
+        ], 400);
+    }
+   
+
 
     // TODO: SELECT id, topic_id, text, author, created_at
     //       FROM replies
     //       WHERE topic_id = ?
     //       ORDER BY created_at ASC
 
+    $stmt = $db->prepare("
+        SELECT id, topic_id, text, author, created_at
+        FROM replies
+        WHERE topic_id = ?
+        ORDER BY created_at ASC
+        ");
+    $stmt->execute([$topicId]);
+    $replies = $stmt->fetchAll(PDO::FETCH_ASSOC);
     // TODO: Fetch all rows. Return sendResponse with the array
     //       (empty array is valid).
+
+     sendResponse([
+        "success" => true,
+        "data" => $replies
+    ]);
 }
 
 
@@ -485,18 +508,63 @@ function createReply(PDO $db, array $data): void
 {
     // TODO: Validate that topic_id, text, and author are all present and
     // non-empty after trimming. If any are missing, sendResponse HTTP 400.
+if (
+        empty($data["topic_id"]) ||
+        empty($data["text"]) ||
+        empty($data["author"]) ||
+        !is_numeric($data["topic_id"])
+    ) {
+        sendResponse([
+            "success" => false,
+            "message" => "Missing required fields."
+        ], 400);
+    }
+
 
     // TODO: Validate that topic_id is numeric.
+    $topicId = $data["topic_id"];
+    $text = sanitizeInput($data["text"]);
+    $author = sanitizeInput($data["author"]);
 
     // TODO: Check that a topic with this id exists in the topics table.
     // If not, sendResponse HTTP 404.
 
+    $check = $db->prepare("SELECT id FROM topics WHERE id = ?");
+    $check->execute([$topicId]);
+     if (!$check->fetch()) {
+        sendResponse([
+            "success" => false,
+            "message" => "Topic not found."
+        ], 404);
+    }
+
     // TODO: INSERT INTO replies (topic_id, text, author) VALUES (?, ?, ?)
     // Note: id and created_at are set automatically by MySQL.
+    $stmt = $db->prepare("
+        INSERT INTO replies (topic_id, text, author)
+        VALUES (?, ?, ?)
+    ");
+
+    $stmt->execute([$topicId, $text, $author]);
+
+    $replyId = (int)$db->lastInsertId();
+
 
     // TODO: If rowCount() > 0, sendResponse HTTP 201 with the new id
     //       and the full new reply object.
     // Otherwise sendResponse HTTP 500.
+    sendResponse([
+        "success" => true,
+        "message" => "Reply created.",
+        "id" => $replyId,
+        "data" => [
+            "id" => $replyId,
+            "topic_id" => (int)$topicId,
+            "text" => $text,
+            "author" => $author,
+            "created_at" => date("Y-m-d H:i:s")
+        ]
+    ], 201);
 }
 
 

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ZeroDayHunter Portfolio</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      background: #0b0f14;
+      color: #f5f7fa;
+      line-height: 1.6;
+    }
+
+    header {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, #0b0f14, #10231c);
+    }
+
+    .hero {
+      max-width: 900px;
+    }
+
+    .logo {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 25px;
+      border: 3px solid #27e68b;
+      box-shadow: 0 0 25px rgba(39, 230, 139, 0.4);
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      color: #27e68b;
+      letter-spacing: 1px;
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      color: #c8d2dc;
+      margin-bottom: 25px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 25px;
+      background: #27e68b;
+      color: #0b0f14;
+      text-decoration: none;
+      border-radius: 30px;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .btn:hover {
+      background: #1fc477;
+      transform: translateY(-3px);
+    }
+
+    nav {
+      position: sticky;
+      top: 0;
+      background: #111821;
+      padding: 15px;
+      text-align: center;
+      z-index: 100;
+      border-bottom: 1px solid #22313f;
+    }
+
+    nav a {
+      color: #f5f7fa;
+      text-decoration: none;
+      margin: 0 12px;
+      font-weight: bold;
+      font-size: 0.95rem;
+    }
+
+    nav a:hover {
+      color: #27e68b;
+    }
+
+    section {
+      padding: 70px 10%;
+    }
+
+    section h2 {
+      font-size: 2rem;
+      color: #27e68b;
+      margin-bottom: 25px;
+      border-left: 5px solid #27e68b;
+      padding-left: 15px;
+    }
+
+    .card {
+      background: #111821;
+      padding: 25px;
+      border-radius: 15px;
+      margin-bottom: 20px;
+      border: 1px solid #22313f;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+    }
+
+    .tag {
+      display: inline-block;
+      background: rgba(39, 230, 139, 0.15);
+      color: #27e68b;
+      padding: 8px 14px;
+      margin: 5px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      border: 1px solid rgba(39, 230, 139, 0.3);
+    }
+
+    ul {
+      margin-left: 20px;
+      margin-top: 10px;
+    }
+
+    .result-box {
+      text-align: center;
+      padding: 25px;
+      background: #0f1d25;
+      border-radius: 12px;
+      border: 1px solid #27e68b;
+    }
+
+    .result-box h3 {
+      font-size: 2rem;
+      color: #27e68b;
+    }
+
+    .placeholder {
+      background: #0d141b;
+      border: 2px dashed #27e68b;
+      padding: 35px;
+      text-align: center;
+      border-radius: 12px;
+      color: #9fb2c3;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px;
+      background: #080b0f;
+      color: #9fb2c3;
+      border-top: 1px solid #22313f;
+    }
+
+    @media (max-width: 700px) {
+      h1 {
+        font-size: 2.2rem;
+      }
+
+      nav a {
+        display: inline-block;
+        margin: 7px;
+      }
+
+      section {
+        padding: 50px 6%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header id="home">
+    <div class="hero">
+      <!-- Replace this with your logo image file if needed -->
+      <img src="logo.png" alt="ZeroDayHunter Logo" class="logo" />
+      <h1>ZeroDayHunter</h1>
+      <p class="subtitle">A Machine Learning-Based Malware Detection System</p>
+      <p>
+        ZeroDayHunter is a group senior project designed to detect malicious and benign files using machine learning models such as Random Forest and XGBoost.
+      </p>
+      <br />
+      <a href="#project" class="btn">View Project</a>
+    </div>
+  </header>
+
+  <nav>
+    <a href="#project">Project</a>
+    <a href="#team">Team</a>
+    <a href="#role">Our Roles</a>
+    <a href="#workflow">Workflow</a>
+    <a href="#results">Results</a>
+    <a href="#tools">Tools</a>
+    <a href="#contact">Contact</a>
+  </nav>
+
+  <section id="project">
+    <h2>Project Overview</h2>
+    <div class="card">
+      <p>
+        ZeroDayHunter aims to improve malware detection by using machine learning techniques instead of relying only on traditional signature-based detection. The system analyzes file features and classifies samples as malicious or benign.
+      </p>
+    </div>
+    <div class="card">
+      <h3>Problem Statement</h3>
+      <p>
+        Traditional malware detection methods struggle to detect unknown, zero-day, and polymorphic malware. This project explores machine learning as a more adaptive approach for identifying threats based on extracted features and learned patterns.
+      </p>
+    </div>
+  </section>
+
+  <section id="team">
+    <h2>Team Project</h2>
+    <div class="card">
+      <p>This project was completed as a group senior project at the University of Bahrain, College of Information Technology.</p>
+      <ul>
+        <li>Team Member : Noof Isa Ali</li>
+        <li>Team Member : Rawan Mohammed Saleh</li>
+        <li>Team Member : Sarah Khalid Ahmed</li>
+        <li>Supervisor: Dr. AbdulFattah</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="role">
+    <h2>Team Roles</h2>
+    <div class="card">
+      <p>
+        The project was developed collaboratively, with each member contributing to specific areas to ensure successful completion.
+      </p>
+      <ul>
+        <li><strong>Sarah Khalid:</strong> Team Leader and Coordinator</li>
+        <li><strong>Noof Isa:</strong> Lead Program Designer and Tester</li>
+        <li><strong>Rawan Mohammed:</strong> Web Development and Design Management</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="workflow">
+    <h2>How It Works</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>1. Data Processing</h3>
+        <p>The system loads data from the EMBER dataset, extracts features, handles missing values, and prepares the data for machine learning.</p>
+      </div>
+      <div class="card">
+        <h3>2. Model Training</h3>
+        <p>Machine learning models such as Random Forest and XGBoost are trained using processed training data.</p>
+      </div>
+      <div class="card">
+        <h3>3. Evaluation</h3>
+        <p>The models are evaluated using accuracy, ROC-AUC, classification reports, and confusion matrices.</p>
+      </div>
+    </div>
+    <br />
+    <div class="placeholder">
+      Add your data processing and machine learning pipeline diagrams here.
+    </div>
+  </section>
+
+  <section id="results">
+    <h2>Results</h2>
+    <div class="grid">
+      <div class="result-box">
+        <h3>90.96%</h3>
+        <p>Random Forest Accuracy</p>
+      </div>
+      <div class="result-box">
+        <h3>91.40%</h3>
+        <p>XGBoost Accuracy</p>
+      </div>
+      <div class="result-box">
+        <h3>97%+</h3>
+        <p>ROC-AUC Score</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="tools">
+    <h2>Tools & Technologies</h2>
+    <div class="card">
+      <span class="tag">Python</span>
+      <span class="tag">Scikit-learn</span>
+      <span class="tag">XGBoost</span>
+      <span class="tag">Random Forest</span>
+      <span class="tag">FastAPI</span>
+      <span class="tag">MongoDB</span>
+      <span class="tag">React</span>
+      <span class="tag">EMBER Dataset</span>
+    </div>
+  </section>
+
+  <section id="contact">
+    <h2>Contact</h2>
+    <div class="card">
+      <p>Email: your.email@example.com</p>
+      <p>GitHub: github.com/yourusername</p>
+      <p>LinkedIn: linkedin.com/in/yourname</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2026 ZeroDayHunter | Machine Learning Malware Detection Project</p>
+  </footer>
+
+</body>
+</html>

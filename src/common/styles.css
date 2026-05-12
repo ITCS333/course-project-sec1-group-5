@@ -1,26 +1,132 @@
-/* CSS Styles */
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #f0f7f0 0%, #e8f0e8 100%);
+    min-height: 100vh;
+}
+
+header {
+    background: linear-gradient(135deg, #1a472a 0%, #0d2818 100%) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    border-bottom: 3px solid #28a745;
+}
+
+header h1 {
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+main.container {
+    max-width: 1200px;
+    padding: 2rem;
+}
+
+main h2 {
+    color: #1a472a;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    position: relative;
+    display: inline-block;
+}
+
+main h2::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: #28a745;
+    border-radius: 3px;
+}
+
+main p {
+    color: #4a5b4e;
+    font-size: 1.1rem;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+}
+
+/* Box container */
 .box-container {
     display: flex;
-    gap: 15px;
+    gap: 25px;
     flex-wrap: wrap;
-    margin-top: 20px;
+    margin-top: 35px;
+    justify-content: center;
 }
 
 .box {
-    background-color: white;
-    border: 2px solid #28a745;
-    border-radius: 10px;
-    padding: 20px;
-    width: 180px;
+    background: linear-gradient(145deg, #e8f5e9 0%, #d4edda 100%);
+    border: 1px solid #c3e6cb;
+    border-radius: 20px;
+    padding: 32px 20px;
+    width: 200px;
     text-align: center;
     text-decoration: none;
-    color: black;
-    font-family: Arial, sans-serif;
-    box-shadow: 2px 2px 8px rgba(0,0,0,0.05);
-    transition: 0.2s;
+    color: #155724;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 1.25rem;
+    box-shadow: 0 8px 20px rgba(40, 167, 69, 0.12);
+    transition: all 0.3s ease;
+    cursor: pointer;
 }
 
 .box:hover {
-    transform: translateY(-3px);
-    box-shadow: 4px 6px 12px rgba(0,0,0,0.1);
+    transform: translateY(-6px);
+    background: linear-gradient(145deg, #d4edda 0%, #c8e6d9 100%);
+    box-shadow: 0 15px 30px rgba(40, 167, 69, 0.2);
+    border-color: #28a745;
+    color: #0b2e16;
+}
+
+.box:nth-child(1)::before {
+    content: "📅 ";
+    font-size: 1.8rem;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.box:nth-child(2)::before {
+    content: "📚 ";
+    font-size: 1.8rem;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.box:nth-child(3)::before {
+    content: "💬 ";
+    font-size: 1.8rem;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.box:nth-child(4)::before {
+    content: "✏️ ";
+    font-size: 1.8rem;
+    display: block;
+    margin-bottom: 12px;
+}
+
+@media (max-width: 768px) {
+    .box-container {
+        gap: 15px;
+    }
+    
+    .box {
+        width: calc(50% - 15px);
+        min-width: 150px;
+        padding: 24px 12px;
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .box {
+        width: 100%;
+    }
+    
+    main.container {
+        padding: 1rem;
+    }
 }

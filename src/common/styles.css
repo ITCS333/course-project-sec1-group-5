@@ -1,1 +1,26 @@
 /* CSS Styles */
+.box-container {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.box {
+    background-color: white;
+    border: 2px solid #28a745;
+    border-radius: 10px;
+    padding: 20px;
+    width: 180px;
+    text-align: center;
+    text-decoration: none;
+    color: black;
+    font-family: Arial, sans-serif;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.05);
+    transition: 0.2s;
+}
+
+.box:hover {
+    transform: translateY(-3px);
+    box-shadow: 4px 6px 12px rgba(0,0,0,0.1);
+}

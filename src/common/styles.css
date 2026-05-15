@@ -1,1 +1,42 @@
-/* CSS Styles */
+
+.box-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.box {
+    background-color: #e6f4ea;      
+    border: 1px solid #28a745;
+    border-radius: 16px;
+    padding: 30px 20px;
+    width: 200px;
+    text-align: center;
+    text-decoration: none;
+    color: #155724;
+    font-weight: bold;
+    font-size: 18px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    transition: 0.2s ease-in-out;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.box::before {
+    font-size: 28px;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.box:first-child::before { content: "📅"; }
+.box:nth-child(2)::before { content: "📚"; }
+.box:nth-child(3)::before { content: "💬"; }
+.box:last-child::before { content: "✏️"; }
+
+.box:hover {
+    background-color: #d4edda;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    border-color: #1e7e34;
+}
